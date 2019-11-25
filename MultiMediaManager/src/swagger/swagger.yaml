@@ -1,0 +1,196 @@
+openapi: 3.0.0
+info:
+  title: 3M Server
+  description: The API for the MultiMediaManager Server, used in GPSChat project
+  version: 1.0.0
+servers:
+- url: http://localhost:8080/v0
+  description: SwaggerHub API Auto Mocking
+
+paths:
+  /3M/api/{bucketName}/{fileId}:
+    get:
+      tags:
+      - Generic Images
+      description: Get an image from MultiMediaManager
+      operationId: get_file
+      parameters:
+      - name: bucketName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: fileId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Image
+          content:
+            image/jpg:
+              schema:
+                type: string
+                format: binary
+                x-content-type: image/jpg
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_404'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: controllers.generic_images_controller
+    post:
+      tags:
+      - Generic Images
+      description: Upload an image from MultiMediaManager
+      operationId: upload_file
+      parameters:
+      - name: bucketName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: fileId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          image/jpg:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        200:
+          description: Image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: controllers.generic_images_controller
+    delete:
+      tags:
+      - Generic Images
+      description: Delete an image from MultiMediaManager
+      operationId: delete_file
+      parameters:
+      - name: bucketName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: fileId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: controllers.generic_images_controller
+components:
+  schemas:
+    inline_response_400:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+        message:
+          type: string
+          example: 'The server encountered the following problem processing your request:
+            {exception}'
+    inline_response_404:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+        message:
+          type: string
+          example: The image with id {id} was not found on this server.
+    inline_response_500:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+        message:
+          type: string
+          example: 'There was an error in the server: {exception}'
+    inline_response_200:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+        message:
+          type: string
+          example: The resource has been created.
+        id:
+          type: number
+          format: int32
+      example:
+        code: 200
+        id: 6.027456183070403
+        message: The resource has been created.
+
