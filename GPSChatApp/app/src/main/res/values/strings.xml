@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">GPSChat</string>
+    <!-- Strings related to login -->
+    <string name="prompt_userId">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in</string>
+    <!-- Not Used but required not to break the build -->
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="prompt_email">Email</string>
+    <!-- END OF Not Used but required not to break the build -->
+    <string name="action_change_register">Go registering</string>
+    <string name="error_invalid_userID">This email is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="action_register">"Register"</string>
+
+    <string name="auth_url">"https://gpschatauthenticator.herokuapp.com/auth"</string>
+    <string name="reg_url">"https://gpschatauthenticator.herokuapp.com/register"</string>
+    <!--
+    <string name="auth_url">"http://192.168.1.102:3000/auth"</string>
+    -->
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <!-- Strings related to Register -->
+    <string name="title_activity_register">Register</string>
+    <string name="prompt_nickname">Nickname</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="title_activity_main">Map</string>
+
+    <!-- Strings related to Main Activity -->
+    <string name="hint_for_publish_message">Write your message here&#8230;</string>
+    <string name="button_publish_message">Publish</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="ip_header">IP Addresses</string>
+    <string name="app_header">App Settings</string>
+
+    <!-- Addresses Preferences -->
+    <string name="mqtt_title">Mqtt Broker IP</string>
+    <string name="m3_title">MultiMedia Manager IP</string>
+    <string name="im_title">Interaction Manager IP</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- App Preferences -->
+    <string name="sub_title">Subscription Range</string>
+    <string name="sub_key">In meters</string>
+
+    <string name="tim_title">Receive message sent</string>
+    <string name="tim_key">In minutes</string>
+
+    <string name="pub_title">Shout Range</string>
+    <string name="pub_key">In meters</string>
+
+    <string name="shape_title">Shape</string>
+
+    <string name="key_shout_radius">pubRange</string>
+    <string name="key_sub_radius">subRange</string>
+    <string name="key_timestamp">timestamp</string>
+    <string name="key_shape">shape</string>
+    <string name="key_mqtt_url">mqtt_url</string>
+
+</resources>
