@@ -1,0 +1,526 @@
+{
+    "version" : "1.1.2",
+    "project" : {
+        "name" : "interactionmanager",
+        "directory" : "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager",
+        "sources" : [
+            "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/src/main/scala-2.13",
+            "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/src/main/scala",
+            "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/src/main/java",
+            "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/target/scala-2.13/src_managed/main"
+        ],
+        "dependencies" : [
+        ],
+        "classpath" : [
+            "/home/carlo/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.13.1.jar",
+            "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-actor-typed_2.13/jars/akka-actor-typed_2.13-2.6.0.jar",
+            "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-actor_2.13/jars/akka-actor_2.13-2.6.0.jar",
+            "/home/carlo/.ivy2/cache/com.typesafe/config/bundles/config-1.4.0.jar",
+            "/home/carlo/.ivy2/cache/org.scala-lang.modules/scala-java8-compat_2.13/jars/scala-java8-compat_2.13-0.9.0.jar",
+            "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.13/jars/akka-slf4j_2.13-2.6.0.jar",
+            "/home/carlo/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.7.28.jar",
+            "/home/carlo/.ivy2/cache/ch.qos.logback/logback-classic/jars/logback-classic-1.2.3.jar",
+            "/home/carlo/.ivy2/cache/ch.qos.logback/logback-core/jars/logback-core-1.2.3.jar",
+            "/home/carlo/.ivy2/cache/org.eclipse.californium/californium-core/bundles/californium-core-2.0.0-RC1.jar",
+            "/home/carlo/.ivy2/cache/org.eclipse.californium/element-connector/bundles/element-connector-2.0.0-RC1.jar",
+            "/home/carlo/.ivy2/cache/org.eclipse.californium/californium-legal/jars/californium-legal-2.0.0-RC1.jar",
+            "/home/carlo/.ivy2/cache/org.eclipse.californium/element-connector-tcp/bundles/element-connector-tcp-2.0.0-RC1.jar",
+            "/home/carlo/.ivy2/cache/io.netty/netty-handler/jars/netty-handler-4.1.42.Final.jar",
+            "/home/carlo/.ivy2/cache/io.netty/netty-common/jars/netty-common-4.1.42.Final.jar",
+            "/home/carlo/.ivy2/cache/io.netty/netty-buffer/jars/netty-buffer-4.1.42.Final.jar",
+            "/home/carlo/.ivy2/cache/io.netty/netty-transport/jars/netty-transport-4.1.42.Final.jar",
+            "/home/carlo/.ivy2/cache/io.netty/netty-resolver/jars/netty-resolver-4.1.42.Final.jar",
+            "/home/carlo/.ivy2/cache/io.netty/netty-codec/jars/netty-codec-4.1.42.Final.jar",
+            "/home/carlo/.ivy2/cache/org.mongodb.scala/mongo-scala-driver_2.13/jars/mongo-scala-driver_2.13-2.7.0.jar",
+            "/home/carlo/.ivy2/cache/org.mongodb.scala/mongo-scala-bson_2.13/jars/mongo-scala-bson_2.13-2.7.0.jar",
+            "/home/carlo/.ivy2/cache/org.mongodb/mongodb-driver-async/jars/mongodb-driver-async-3.11.0.jar",
+            "/home/carlo/.ivy2/cache/org.mongodb/bson/jars/bson-3.11.0.jar",
+            "/home/carlo/.ivy2/cache/org.mongodb/mongodb-driver-core/jars/mongodb-driver-core-3.11.0.jar",
+            "/home/carlo/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.13.1.jar"
+        ],
+        "out" : "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/.bloop/interactionmanager",
+        "classesDir" : "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/.bloop/interactionmanager/scala-2.13/classes",
+        "resources" : [
+            "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/src/main/resources",
+            "/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager/target/scala-2.13/resource_managed/main"
+        ],
+        "scala" : {
+            "organization" : "org.scala-lang",
+            "name" : "scala-compiler",
+            "version" : "2.13.1",
+            "options" : [
+                "-P:semanticdb:synthetics:on",
+                "-P:semanticdb:failures:warning",
+                "-P:semanticdb:sourceroot:/home/carlo/Documents/IoT/GPSChat/InteractionManager/interactionmanager",
+                "-Yrangepos",
+                "-Xplugin-require:semanticdb",
+                "-Xplugin:/home/carlo/.ivy2/cache/org.scalameta/semanticdb-scalac_2.13.1/jars/semanticdb-scalac_2.13.1-4.2.3.jar"
+            ],
+            "jars" : [
+                "/home/carlo/.ivy2/cache/org.scala-lang/scala-compiler/jars/scala-compiler-2.13.1.jar",
+                "/home/carlo/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.13.1.jar",
+                "/home/carlo/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.13.1.jar",
+                "/home/carlo/.ivy2/cache/jline/jline/jars/jline-2.14.6.jar",
+                "/home/carlo/.ivy2/cache/org.fusesource.jansi/jansi/jars/jansi-1.12.jar"
+            ],
+            "setup" : {
+                "order" : "mixed",
+                "addLibraryToBootClasspath" : true,
+                "addCompilerToClasspath" : false,
+                "addExtraJarsToClasspath" : false,
+                "manageBootClasspath" : true,
+                "filterLibraryFromClasspath" : true
+            }
+        },
+        "java" : {
+            "options" : [
+            ]
+        },
+        "test" : {
+            "frameworks" : [
+                {
+                    "names" : [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names" : [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names" : [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names" : [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names" : [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                }
+            ],
+            "options" : {
+                "excludes" : [
+                ],
+                "arguments" : [
+                ]
+            }
+        },
+        "platform" : {
+            "name" : "jvm",
+            "config" : {
+                "home" : "/usr/lib/jvm/java-8-openjdk-amd64/jre",
+                "options" : [
+                ]
+            },
+            "mainClass" : [
+            ]
+        },
+        "resolution" : {
+            "modules" : [
+                {
+                    "organization" : "org.scala-lang",
+                    "name" : "scala-library",
+                    "version" : "2.13.1",
+                    "artifacts" : [
+                        {
+                            "name" : "scala-library",
+                            "path" : "/home/carlo/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.13.1.jar"
+                        },
+                        {
+                            "name" : "scala-library",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.scala-lang/scala-library/srcs/scala-library-2.13.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "com.typesafe.akka",
+                    "name" : "akka-actor-typed_2.13",
+                    "version" : "2.6.0",
+                    "artifacts" : [
+                        {
+                            "name" : "akka-actor-typed_2.13",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-actor-typed_2.13/jars/akka-actor-typed_2.13-2.6.0.jar"
+                        },
+                        {
+                            "name" : "akka-actor-typed_2.13",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-actor-typed_2.13/srcs/akka-actor-typed_2.13-2.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "com.typesafe.akka",
+                    "name" : "akka-actor_2.13",
+                    "version" : "2.6.0",
+                    "artifacts" : [
+                        {
+                            "name" : "akka-actor_2.13",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-actor_2.13/jars/akka-actor_2.13-2.6.0.jar"
+                        },
+                        {
+                            "name" : "akka-actor_2.13",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-actor_2.13/srcs/akka-actor_2.13-2.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "com.typesafe",
+                    "name" : "config",
+                    "version" : "1.4.0",
+                    "artifacts" : [
+                        {
+                            "name" : "config",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe/config/bundles/config-1.4.0.jar"
+                        },
+                        {
+                            "name" : "config",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe/config/srcs/config-1.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.scala-lang.modules",
+                    "name" : "scala-java8-compat_2.13",
+                    "version" : "0.9.0",
+                    "artifacts" : [
+                        {
+                            "name" : "scala-java8-compat_2.13",
+                            "path" : "/home/carlo/.ivy2/cache/org.scala-lang.modules/scala-java8-compat_2.13/jars/scala-java8-compat_2.13-0.9.0.jar"
+                        },
+                        {
+                            "name" : "scala-java8-compat_2.13",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.scala-lang.modules/scala-java8-compat_2.13/srcs/scala-java8-compat_2.13-0.9.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "com.typesafe.akka",
+                    "name" : "akka-slf4j_2.13",
+                    "version" : "2.6.0",
+                    "artifacts" : [
+                        {
+                            "name" : "akka-slf4j_2.13",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.13/jars/akka-slf4j_2.13-2.6.0.jar"
+                        },
+                        {
+                            "name" : "akka-slf4j_2.13",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.13/srcs/akka-slf4j_2.13-2.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.slf4j",
+                    "name" : "slf4j-api",
+                    "version" : "1.7.28",
+                    "artifacts" : [
+                        {
+                            "name" : "slf4j-api",
+                            "path" : "/home/carlo/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.7.28.jar"
+                        },
+                        {
+                            "name" : "slf4j-api",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.slf4j/slf4j-api/srcs/slf4j-api-1.7.28-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "ch.qos.logback",
+                    "name" : "logback-classic",
+                    "version" : "1.2.3",
+                    "artifacts" : [
+                        {
+                            "name" : "logback-classic",
+                            "path" : "/home/carlo/.ivy2/cache/ch.qos.logback/logback-classic/jars/logback-classic-1.2.3.jar"
+                        },
+                        {
+                            "name" : "logback-classic",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/ch.qos.logback/logback-classic/srcs/logback-classic-1.2.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "ch.qos.logback",
+                    "name" : "logback-core",
+                    "version" : "1.2.3",
+                    "artifacts" : [
+                        {
+                            "name" : "logback-core",
+                            "path" : "/home/carlo/.ivy2/cache/ch.qos.logback/logback-core/jars/logback-core-1.2.3.jar"
+                        },
+                        {
+                            "name" : "logback-core",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/ch.qos.logback/logback-core/srcs/logback-core-1.2.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.eclipse.californium",
+                    "name" : "californium-core",
+                    "version" : "2.0.0-RC1",
+                    "artifacts" : [
+                        {
+                            "name" : "californium-core",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/californium-core/bundles/californium-core-2.0.0-RC1.jar"
+                        },
+                        {
+                            "name" : "californium-core",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/californium-core/srcs/californium-core-2.0.0-RC1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.eclipse.californium",
+                    "name" : "element-connector",
+                    "version" : "2.0.0-RC1",
+                    "artifacts" : [
+                        {
+                            "name" : "element-connector",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/element-connector/bundles/element-connector-2.0.0-RC1.jar"
+                        },
+                        {
+                            "name" : "element-connector",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/element-connector/srcs/element-connector-2.0.0-RC1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.eclipse.californium",
+                    "name" : "californium-legal",
+                    "version" : "2.0.0-RC1",
+                    "artifacts" : [
+                        {
+                            "name" : "californium-legal",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/californium-legal/jars/californium-legal-2.0.0-RC1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.eclipse.californium",
+                    "name" : "element-connector-tcp",
+                    "version" : "2.0.0-RC1",
+                    "artifacts" : [
+                        {
+                            "name" : "element-connector-tcp",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/element-connector-tcp/bundles/element-connector-tcp-2.0.0-RC1.jar"
+                        },
+                        {
+                            "name" : "element-connector-tcp",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.eclipse.californium/element-connector-tcp/srcs/element-connector-tcp-2.0.0-RC1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "io.netty",
+                    "name" : "netty-handler",
+                    "version" : "4.1.42.Final",
+                    "artifacts" : [
+                        {
+                            "name" : "netty-handler",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-handler/jars/netty-handler-4.1.42.Final.jar"
+                        },
+                        {
+                            "name" : "netty-handler",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-handler/srcs/netty-handler-4.1.42.Final-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "io.netty",
+                    "name" : "netty-common",
+                    "version" : "4.1.42.Final",
+                    "artifacts" : [
+                        {
+                            "name" : "netty-common",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-common/jars/netty-common-4.1.42.Final.jar"
+                        },
+                        {
+                            "name" : "netty-common",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-common/srcs/netty-common-4.1.42.Final-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "io.netty",
+                    "name" : "netty-buffer",
+                    "version" : "4.1.42.Final",
+                    "artifacts" : [
+                        {
+                            "name" : "netty-buffer",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-buffer/jars/netty-buffer-4.1.42.Final.jar"
+                        },
+                        {
+                            "name" : "netty-buffer",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-buffer/srcs/netty-buffer-4.1.42.Final-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "io.netty",
+                    "name" : "netty-transport",
+                    "version" : "4.1.42.Final",
+                    "artifacts" : [
+                        {
+                            "name" : "netty-transport",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-transport/jars/netty-transport-4.1.42.Final.jar"
+                        },
+                        {
+                            "name" : "netty-transport",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-transport/srcs/netty-transport-4.1.42.Final-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "io.netty",
+                    "name" : "netty-resolver",
+                    "version" : "4.1.42.Final",
+                    "artifacts" : [
+                        {
+                            "name" : "netty-resolver",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-resolver/jars/netty-resolver-4.1.42.Final.jar"
+                        },
+                        {
+                            "name" : "netty-resolver",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-resolver/srcs/netty-resolver-4.1.42.Final-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "io.netty",
+                    "name" : "netty-codec",
+                    "version" : "4.1.42.Final",
+                    "artifacts" : [
+                        {
+                            "name" : "netty-codec",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-codec/jars/netty-codec-4.1.42.Final.jar"
+                        },
+                        {
+                            "name" : "netty-codec",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/io.netty/netty-codec/srcs/netty-codec-4.1.42.Final-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.mongodb.scala",
+                    "name" : "mongo-scala-driver_2.13",
+                    "version" : "2.7.0",
+                    "artifacts" : [
+                        {
+                            "name" : "mongo-scala-driver_2.13",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb.scala/mongo-scala-driver_2.13/jars/mongo-scala-driver_2.13-2.7.0.jar"
+                        },
+                        {
+                            "name" : "mongo-scala-driver_2.13",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb.scala/mongo-scala-driver_2.13/srcs/mongo-scala-driver_2.13-2.7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.mongodb.scala",
+                    "name" : "mongo-scala-bson_2.13",
+                    "version" : "2.7.0",
+                    "artifacts" : [
+                        {
+                            "name" : "mongo-scala-bson_2.13",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb.scala/mongo-scala-bson_2.13/jars/mongo-scala-bson_2.13-2.7.0.jar"
+                        },
+                        {
+                            "name" : "mongo-scala-bson_2.13",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb.scala/mongo-scala-bson_2.13/srcs/mongo-scala-bson_2.13-2.7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.mongodb",
+                    "name" : "mongodb-driver-async",
+                    "version" : "3.11.0",
+                    "artifacts" : [
+                        {
+                            "name" : "mongodb-driver-async",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb/mongodb-driver-async/jars/mongodb-driver-async-3.11.0.jar"
+                        },
+                        {
+                            "name" : "mongodb-driver-async",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb/mongodb-driver-async/srcs/mongodb-driver-async-3.11.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.mongodb",
+                    "name" : "bson",
+                    "version" : "3.11.0",
+                    "artifacts" : [
+                        {
+                            "name" : "bson",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb/bson/jars/bson-3.11.0.jar"
+                        },
+                        {
+                            "name" : "bson",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb/bson/srcs/bson-3.11.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.mongodb",
+                    "name" : "mongodb-driver-core",
+                    "version" : "3.11.0",
+                    "artifacts" : [
+                        {
+                            "name" : "mongodb-driver-core",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb/mongodb-driver-core/jars/mongodb-driver-core-3.11.0.jar"
+                        },
+                        {
+                            "name" : "mongodb-driver-core",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.mongodb/mongodb-driver-core/srcs/mongodb-driver-core-3.11.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization" : "org.scala-lang",
+                    "name" : "scala-reflect",
+                    "version" : "2.13.1",
+                    "artifacts" : [
+                        {
+                            "name" : "scala-reflect",
+                            "path" : "/home/carlo/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.13.1.jar"
+                        },
+                        {
+                            "name" : "scala-reflect",
+                            "classifier" : "sources",
+                            "path" : "/home/carlo/.ivy2/cache/org.scala-lang/scala-reflect/srcs/scala-reflect-2.13.1-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

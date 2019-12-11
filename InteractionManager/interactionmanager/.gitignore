@@ -1,0 +1,7 @@
+.*
+
+!.gitignore
+
+.metals
+target/*
+project/*
