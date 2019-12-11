@@ -4,6 +4,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import it.carlo.pellegrino.gpschat.imageUtils.ImageUtils;
 import it.carlo.pellegrino.gpschat.mapUtils.MqttPayloadMessageAdaptatorForMarker;
 import it.carlo.pellegrino.gpschat.mapUtils.UnitConverter;
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MainActivityMessageEvent;
@@ -12,6 +13,7 @@ import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MqttMessagePayloadEve
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.WrapperEventForMessageHandler;
 import it.carlo.pellegrino.gpschat.messageHandlers.MessageHandlerContainer;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttBaseMessage;
+import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttReplyMessage;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttShoutMessage;
 
 import android.Manifest;
@@ -20,7 +22,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
@@ -54,9 +55,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -66,7 +65,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    private LocationManager gpsManager;
+    private LocationManager mGPSManager;
 
     private FloatingActionButton mPublishButton;
     private FloatingActionButton mSettingsButton;
@@ -90,7 +89,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static int zoom = 150;
     private boolean backPressedOneTime = false;
-    private static List<String> openInfoWindows = null;
+    private static List<String> mOpenInfoWindows = null;
 
 
     private EventBus processEventBus = EventBus.getDefault();
@@ -106,7 +105,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        gpsManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mGPSManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         LocationListener gpschatLatLonProvider = new LocListener();
 
         if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED
@@ -121,8 +120,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         chosenRadius = preferences.getString(getResources().getString(R.string.key_shout_radius), "");
         chosenUnit   = "m"; //Will implement in future
         Log.i("GPSCHAT", "Chosen Radius is: " + chosenRadius);
-        gpsManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, gpschatLatLonProvider);
-        openInfoWindows = new LinkedList<>();
+        mGPSManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, gpschatLatLonProvider);
+        mOpenInfoWindows = new LinkedList<>();
 
         mPublishMessage = findViewById(R.id.textInputPublishMessage);
         mPublishButton  = findViewById(R.id.publish_button);
@@ -180,6 +179,32 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         );
         messageHandler = new MessageHandlerContainer(mMap);
         processEventBus.postSticky(new WrapperEventForMessageHandler(messageHandler));
+        messageHandler.pushMessage(new MqttShoutMessage(new MqttBaseMessage.Builder()
+                .id(1)
+                .message("Hello, this is my current position")
+                .nickname(nickname)
+                .resources("")
+                .revision(0L)
+                .type(MqttBaseMessage.TYPE_SHOUT)
+                .timestamp(new Date().toString())
+                .build(),
+                new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())
+                )
+        );
+        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+                .id(2)
+                .message("Hello " + nickname + ", my name is John.")
+                .nickname("John")
+                .resources("")
+                .revision(0L)
+                .type(MqttBaseMessage.TYPE_REPLY)
+                .timestamp(new Date().toString())
+                .build(),
+                1L
+                )
+        );
+
+
     }
 
     private void displayCurrentPositionAndSubscribeRadius() {
@@ -191,7 +216,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         if (currentLocation != null) {
-            Bitmap image = getTransparentImage("https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png");
+            Bitmap image = ImageUtils.getTransparentImage("https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png");
 
             LatLng currentLtLn = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             Marker f = mMap.addMarker(new MarkerOptions()
@@ -226,31 +251,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         processEventBus.post(new MqttMessagePayloadEvent(toSend));
     }
 
-    private Bitmap getTransparentImage(String url) {
-        Bitmap bmp = null;
-        int size = 150;
-        try {
-            InputStream buffer = new URL(url).openConnection().getInputStream();
-            bmp = BitmapFactory.decodeStream(buffer);
-            bmp.setHasAlpha(true);
-        }
-        catch (MalformedURLException ex) {
-            Log.v("GPSCHAT", "Error in decoding the URL");
-        }
-        catch (IOException ex) {
-            Log.v("GPSCHAT", "Error in opening connection");
-        }
-
-        return Bitmap.createScaledBitmap(bmp, size, size, false);
-    }
-
     private Location getLastLocationFromProviders() {
         Location currentPos = null;
 
         if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED ) {
-            currentPos = gpsManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            currentPos = mGPSManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (currentPos == null)
-                currentPos = gpsManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                currentPos = mGPSManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
         return currentPos;
     }
@@ -260,29 +267,43 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
         View popup = inflater.inflate(R.layout.shout_responses_layout, null);
-
-        int width  = LinearLayout.LayoutParams.MATCH_PARENT;
-        int height = LinearLayout.LayoutParams.MATCH_PARENT;
+        int width  = LinearLayout.LayoutParams.MATCH_PARENT,
+                height = LinearLayout.LayoutParams.MATCH_PARENT;
         boolean focusable = true;
+
         PopupWindow window = new PopupWindow(popup, width, height, focusable);
         window.setElevation(5.0f);
         int color = 0x8A817C;
-        int transparency = 0xE0000000;
+        int transparency = 0xEB000000;
         window.setBackgroundDrawable(new ColorDrawable(transparency + color));
+
+        MqttBaseMessage msg = messageHandler.getMessageFromMarker(marker);
+
+        TextView nicknameTV = popup.findViewById(R.id.nickname_shout_text_view),
+                dateTV = popup.findViewById(R.id.date_shout_text_view),
+                messageTV = popup.findViewById(R.id.shout_message_text_view);
+
+        if (msg != null) {
+            String msgNickname = msg.getNickname();
+            nicknameTV.setText(msgNickname.equals(nickname) ? "You" : msgNickname);
+            dateTV.setText(msg.getTimestamp());
+            messageTV.setText(msg.getMessage());
+        }
 
         window.showAtLocation(this.getCurrentFocus(), Gravity.CENTER, 0, 0);
 
     }
 
+    // TODO: Move to the component that will have the responsibility to display Markers
     @Override
     public boolean onMarkerClick(Marker marker) {
 
-        if (!openInfoWindows.contains(marker.getId())) {
-            openInfoWindows.add(marker.getId());
+        if (!mOpenInfoWindows.contains(marker.getId())) {
+            mOpenInfoWindows.add(marker.getId());
             marker.showInfoWindow();
         }
         else {
-            openInfoWindows.remove(openInfoWindows.indexOf(marker.getId()));
+            mOpenInfoWindows.remove(mOpenInfoWindows.indexOf(marker.getId()));
             marker.hideInfoWindow();
         }
 

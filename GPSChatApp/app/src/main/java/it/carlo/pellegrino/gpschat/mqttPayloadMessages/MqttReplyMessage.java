@@ -103,4 +103,14 @@ public class MqttReplyMessage extends MqttBaseMessage {
                 "Replies: " + this.getReplies().toString() + "\n" +
                 "Resources: " + this.getResources().toString() + "\n";
     }
+
+    public MqttReplyMessage (MqttBaseMessage base, Long responseTo) {
+        super(base.type, base.revision, base.timestamp, base.message, base.nickname, base.id, base.resources);
+
+        this.responseTo = responseTo;
+        this.replies = new ArrayList<>();
+        this.numReplies = Long.valueOf(this.replies.size());
+
+    }
+
 }

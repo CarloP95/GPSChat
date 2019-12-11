@@ -1,7 +1,5 @@
 package it.carlo.pellegrino.gpschat.mapUtils;
 
-import android.graphics.Color;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
