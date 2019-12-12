@@ -33,6 +33,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.text.Layout;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -53,10 +54,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.Date;
@@ -319,19 +322,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onInfoWindowClick(Marker marker) {
 
-        LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popup = inflater.inflate(R.layout.shout_responses_layout, null);
-        int width  = LinearLayout.LayoutParams.MATCH_PARENT,
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popup = inflater.inflate(R.layout.shout_responses_layout, null);
+        int width = LinearLayout.LayoutParams.MATCH_PARENT,
                 height = LinearLayout.LayoutParams.MATCH_PARENT;
         boolean focusable = true;
 
         PopupWindow window = new PopupWindow(popup, width, height, focusable);
         window.setElevation(5.0f);
-        int color = 0x8A817C;
+        int color = 0x424242;
         int transparency = 0xEB000000;
         window.setBackgroundDrawable(new ColorDrawable(transparency + color));
 
-        MqttBaseMessage msg = messageHandler.getMessageFromMarker(marker);
+        final MqttBaseMessage msg = messageHandler.getMessageFromMarker(marker);
 
         TextView nicknameTV = popup.findViewById(R.id.nickname_shout_text_view),
                 dateTV = popup.findViewById(R.id.date_shout_text_view),
@@ -342,69 +345,115 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             nicknameTV.setText(msgNickname.equals(nickname) ? "You" : msgNickname);
             dateTV.setText(msg.getTimestamp());
             messageTV.setText(msg.getMessage());
+
+            View replyButton = popup.findViewById(R.id.replyButton);
+            replyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView writtenText = popup.findViewById(R.id.shout_toReplyText);
+                    MqttReplyMessage reply = new MqttReplyMessage(new MqttBaseMessage.Builder()
+                            .message(writtenText.getText().toString())
+                            .id(UUID.randomUUID().getLeastSignificantBits())
+                            .type(MqttBaseMessage.TYPE_REPLY)
+                            .revision(0L)
+                            .nickname(nickname)
+                            .timestamp(new Date().toString())
+                            .resources("")
+                            .build(),
+                            msg.getId()
+                    );
+                    processEventBus.post(new MqttMessagePayloadEvent(reply));
+                    writtenText.setText("");
+                }
+            });
         }
 
         LinearLayout displayMessagesLayout = popup.findViewById(R.id.displayMessagesLayout);
         // Dynamically Display replyMessages
         List<View> toDisplayLayouts = new LinkedList<>();
-        for (MqttReplyMessage replyMessage: ((MqttShoutMessage) msg).getReplies()) {
+        if (msg != null) {
 
-            int complexWidth = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP,
-                    250,
-                    getResources().getDisplayMetrics()
-            );
+            for (MqttReplyMessage replyMessage : ((MqttShoutMessage) msg).getReplies()) {
 
-            int complexMargin = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP,
-                    10,
-                    getResources().getDisplayMetrics()
-            );
+                int complexWidth = (int) TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        250,
+                        getResources().getDisplayMetrics()
+                );
 
-            boolean itsYourMessage = replyMessage.getNickname().equals(nickname);
+                int complexMargin = (int) TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        10,
+                        getResources().getDisplayMetrics()
+                );
 
-            TextView forEach_dateTV = new TextView(this);
-            height = LinearLayout.LayoutParams.WRAP_CONTENT;
-            forEach_dateTV.setLayoutParams(new LinearLayout.LayoutParams(width, height));
-            forEach_dateTV.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-            forEach_dateTV.setText(replyMessage.getTimestamp());
+                boolean itsYourMessage = replyMessage.getNickname().equals(nickname);
 
-            LinearLayout llParent = new LinearLayout(this),
-                    llChild = new LinearLayout(this);
-            llParent.setOrientation(LinearLayout.VERTICAL);
-            llParent.setGravity(itsYourMessage ? Gravity.END : Gravity.START);
+                TextView forEach_dateTV = new TextView(this);
+                height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                forEach_dateTV.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+                forEach_dateTV.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+                forEach_dateTV.setText(replyMessage.getTimestamp());
 
-            LinearLayout.LayoutParams llParentLayoutParams = new LinearLayout.LayoutParams(width, height);
-            if (itsYourMessage) llParentLayoutParams.setMarginEnd(complexMargin * 2);
-            llParent.setLayoutParams(llParentLayoutParams);
+                LinearLayout llParent = new LinearLayout(this),
+                        llChild = new LinearLayout(this);
+                llParent.setOrientation(LinearLayout.VERTICAL);
+                llParent.setGravity(itsYourMessage ? Gravity.END : Gravity.START);
 
-            llChild.setOrientation(LinearLayout.VERTICAL);
-            llChild.setBackgroundResource(itsYourMessage ? R.drawable.skyblue : R.drawable.azureishwhite);
+                LinearLayout.LayoutParams llParentLayoutParams = new LinearLayout.LayoutParams(width, height);
+                if (itsYourMessage) llParentLayoutParams.setMarginEnd(complexMargin * 2);
+                llParent.setLayoutParams(llParentLayoutParams);
 
-            LinearLayout.LayoutParams llChildLayoutParams = new LinearLayout.LayoutParams(complexWidth, height);
-            llChildLayoutParams.setMarginStart(complexMargin);
-            llChild.setLayoutParams(llChildLayoutParams);
-            llChild.setPadding(complexMargin, complexMargin, complexMargin, complexMargin);
+                if (!itsYourMessage) {
 
-            TextView forEach_Nickname = new TextView(this);
-            TextView forEach_Message  = new TextView(this);
-            forEach_Nickname.setLayoutParams(new LinearLayout.LayoutParams(width, height));
-            forEach_Nickname.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-            forEach_Nickname.setTypeface(forEach_Nickname.getTypeface(), Typeface.BOLD);
-            forEach_Nickname.setText(itsYourMessage ? "You" : replyMessage.getNickname());
-            forEach_Nickname.setTextColor(Color.BLACK);
-            forEach_Message.setLayoutParams(new LinearLayout.LayoutParams(width, height));
-            //forEach_Message.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-            //forEach_Message.setTypeface(forEach_Message.getTypeface(), Typeface.BOLD);
-            forEach_Message.setText(replyMessage.getMessage());
-            forEach_Message.setTextColor(Color.BLACK);
-            llChild.addView(forEach_Nickname);
-            llChild.addView(forEach_Message);
-            llParent.addView(llChild);
+                    int dimensions = (int) TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            40,
+                            getResources().getDisplayMetrics()
+                    );
 
-            toDisplayLayouts.add(forEach_dateTV);
-            toDisplayLayouts.add(llParent);
+                    CircularImageView portrait = new CircularImageView(this);
+                    LinearLayout.LayoutParams portraitLayoutParams = new LinearLayout.LayoutParams(dimensions, dimensions);
+                    portraitLayoutParams.setMarginStart(complexMargin*2);
+                    portrait.setLayoutParams(portraitLayoutParams);
+                    String urlOfPortrait = msg.getResources().get(0);
+                    if (urlOfPortrait.equals("")) {
+                        portrait.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
+                    } else {
+                        // Implement set background with correct photo
+                        portrait.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
+                    }
+                    llParent.addView(portrait);
+                }
 
+                llChild.setOrientation(LinearLayout.VERTICAL);
+                llChild.setBackgroundResource(itsYourMessage ? R.drawable.skyblue : R.drawable.azureishwhite);
+
+                LinearLayout.LayoutParams llChildLayoutParams = new LinearLayout.LayoutParams(complexWidth, height);
+                llChildLayoutParams.setMargins(complexMargin, 0,0, complexMargin);
+                llChild.setLayoutParams(llChildLayoutParams);
+                llChild.setPadding(complexMargin, complexMargin, complexMargin, complexMargin);
+
+                TextView forEach_Nickname = new TextView(this);
+                TextView forEach_Message = new TextView(this);
+                forEach_Nickname.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+                forEach_Nickname.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+                forEach_Nickname.setTypeface(forEach_Nickname.getTypeface(), Typeface.BOLD);
+                forEach_Nickname.setText(itsYourMessage ? "You" : replyMessage.getNickname());
+                forEach_Nickname.setTextColor(Color.BLACK);
+                forEach_Message.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+                //forEach_Message.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+                //forEach_Message.setTypeface(forEach_Message.getTypeface(), Typeface.BOLD);
+                forEach_Message.setText(replyMessage.getMessage());
+                forEach_Message.setTextColor(Color.BLACK);
+                llChild.addView(forEach_Nickname);
+                llChild.addView(forEach_Message);
+                llParent.addView(llChild);
+
+                toDisplayLayouts.add(forEach_dateTV);
+                toDisplayLayouts.add(llParent);
+
+            }
         }
 
         for (View ll: toDisplayLayouts)

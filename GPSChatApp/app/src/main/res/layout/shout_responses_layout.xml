@@ -53,6 +53,7 @@
                         android:layout_width="250dp"
                         android:layout_height="100dp"
                         android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
                         android:background="@drawable/primary"
                         android:orientation="vertical"
                         android:padding="10dp">
@@ -75,9 +76,8 @@
 
                     </LinearLayout>
 
-
                 </LinearLayout>
-
+                <!--
                 <TextView
                     android:id="@+id/textView9"
                     android:layout_width="match_parent"
@@ -163,7 +163,7 @@
 
 
                 </LinearLayout>
-
+                -->
 
             </LinearLayout>
 
@@ -177,14 +177,49 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="hint" />
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/shout_toReplyText"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginEnd="76dp"
+                                android:capitalize="sentences"
+                                android:hint="@string/hint_for_publish_message"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:id="@+id/replyButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:visibility="visible"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/shout_toReplyText"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:srcCompat="@android:drawable/ic_menu_send" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="43dp"
                         android:orientation="horizontal">
 
                         <ImageView
