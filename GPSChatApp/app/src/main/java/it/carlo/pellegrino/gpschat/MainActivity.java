@@ -22,7 +22,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -31,6 +34,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -203,6 +207,56 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 1L
                 )
         );
+        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+                        .id(3)
+                        .message("Hello John! Welcome to GPSChat")
+                        .nickname(nickname)
+                        .resources("")
+                        .revision(0L)
+                        .type(MqttBaseMessage.TYPE_REPLY)
+                        .timestamp(new Date().toString())
+                        .build(),
+                        1L
+                )
+        );
+        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+                        .id(4)
+                        .message("Hello Everyone! I am Paul.")
+                        .nickname("Paul")
+                        .resources("")
+                        .revision(0L)
+                        .type(MqttBaseMessage.TYPE_REPLY)
+                        .timestamp(new Date().toString())
+                        .build(),
+                        1L
+                )
+        );
+        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+                        .id(5)
+                        .message("And i'm Mario")
+                        .nickname("Mario")
+                        .resources("")
+                        .revision(0L)
+                        .type(MqttBaseMessage.TYPE_REPLY)
+                        .timestamp(new Date().toString())
+                        .build(),
+                        1L
+                )
+        );
+        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+                        .id(6)
+                        .message("I was just wondering if spamming with text does the text " +
+                                "wrap in the next line, or if it produces some weird graphic effect. " +
+                                "Let's test it with this looooooong message. Hi All! I'm the producer of this app.")
+                        .nickname(nickname)
+                        .resources("")
+                        .revision(0L)
+                        .type(MqttBaseMessage.TYPE_REPLY)
+                        .timestamp(new Date().toString())
+                        .build(),
+                        1L
+                )
+        );
 
 
     }
@@ -289,6 +343,72 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             dateTV.setText(msg.getTimestamp());
             messageTV.setText(msg.getMessage());
         }
+
+        LinearLayout displayMessagesLayout = popup.findViewById(R.id.displayMessagesLayout);
+        // Dynamically Display replyMessages
+        List<View> toDisplayLayouts = new LinkedList<>();
+        for (MqttReplyMessage replyMessage: ((MqttShoutMessage) msg).getReplies()) {
+
+            int complexWidth = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    250,
+                    getResources().getDisplayMetrics()
+            );
+
+            int complexMargin = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    10,
+                    getResources().getDisplayMetrics()
+            );
+
+            boolean itsYourMessage = replyMessage.getNickname().equals(nickname);
+
+            TextView forEach_dateTV = new TextView(this);
+            height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            forEach_dateTV.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+            forEach_dateTV.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+            forEach_dateTV.setText(replyMessage.getTimestamp());
+
+            LinearLayout llParent = new LinearLayout(this),
+                    llChild = new LinearLayout(this);
+            llParent.setOrientation(LinearLayout.VERTICAL);
+            llParent.setGravity(itsYourMessage ? Gravity.END : Gravity.START);
+
+            LinearLayout.LayoutParams llParentLayoutParams = new LinearLayout.LayoutParams(width, height);
+            if (itsYourMessage) llParentLayoutParams.setMarginEnd(complexMargin * 2);
+            llParent.setLayoutParams(llParentLayoutParams);
+
+            llChild.setOrientation(LinearLayout.VERTICAL);
+            llChild.setBackgroundResource(itsYourMessage ? R.drawable.skyblue : R.drawable.azureishwhite);
+
+            LinearLayout.LayoutParams llChildLayoutParams = new LinearLayout.LayoutParams(complexWidth, height);
+            llChildLayoutParams.setMarginStart(complexMargin);
+            llChild.setLayoutParams(llChildLayoutParams);
+            llChild.setPadding(complexMargin, complexMargin, complexMargin, complexMargin);
+
+            TextView forEach_Nickname = new TextView(this);
+            TextView forEach_Message  = new TextView(this);
+            forEach_Nickname.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+            forEach_Nickname.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+            forEach_Nickname.setTypeface(forEach_Nickname.getTypeface(), Typeface.BOLD);
+            forEach_Nickname.setText(itsYourMessage ? "You" : replyMessage.getNickname());
+            forEach_Nickname.setTextColor(Color.BLACK);
+            forEach_Message.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+            //forEach_Message.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+            //forEach_Message.setTypeface(forEach_Message.getTypeface(), Typeface.BOLD);
+            forEach_Message.setText(replyMessage.getMessage());
+            forEach_Message.setTextColor(Color.BLACK);
+            llChild.addView(forEach_Nickname);
+            llChild.addView(forEach_Message);
+            llParent.addView(llChild);
+
+            toDisplayLayouts.add(forEach_dateTV);
+            toDisplayLayouts.add(llParent);
+
+        }
+
+        for (View ll: toDisplayLayouts)
+            displayMessagesLayout.addView(ll);
 
         window.showAtLocation(this.getCurrentFocus(), Gravity.CENTER, 0, 0);
 

@@ -42,7 +42,6 @@ public class MessageHandlerContainer {
     public MessageHandlerContainer pushMessage(MqttBaseMessage msg) {
 
         MqttBaseMessage alreadyPresentMessage = mMQTTPayloadMessages.get(msg.getId());
-
         switch (msg.getType()) {
             case MqttBaseMessage.TYPE_SHOUT:
 
