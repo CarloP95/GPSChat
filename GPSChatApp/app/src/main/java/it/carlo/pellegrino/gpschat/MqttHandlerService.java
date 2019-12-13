@@ -3,6 +3,8 @@ package it.carlo.pellegrino.gpschat;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -31,6 +33,7 @@ import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MqttMessagePayloadEve
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.WrapperEventForMessageHandler;
 import it.carlo.pellegrino.gpschat.messageHandlers.MessageHandlerContainer;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttBaseMessage;
+import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttReplyMessage;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttShoutMessage;
 import it.carlo.pellegrino.gpschat.topicUtils.TopicFilterBuilder;
 
@@ -178,7 +181,8 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
         try {
 
-            boolean itsShoutMessage = evt.getPayloadMessage().getType() == MqttBaseMessage.TYPE_SHOUT;
+            MqttBaseMessage msgToSend = evt.getPayloadMessage();
+            boolean itsShoutMessage = msgToSend.getType() == MqttBaseMessage.TYPE_SHOUT;
             /* Since the update/reply/delete message must be sent to the location of the previous message
             *  other metadata must be added to the MqttBaseMessage. For now, set the radius to a high value
             *  to mitigate the problem. */
@@ -186,8 +190,24 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
             if (itsShoutMessage) {
                 currentTopicFilter = topicFilter;
             }  else {
+                // TODO: Implement for each MqttMessageType
+                if (msgToSend.getType() != MqttBaseMessage.TYPE_REPLY) {
+                    Log.e("GPSCHAT", "You are trying to send a DELETE or UPDATE message. This behavior has not been implemented yet.");
+                    throw new UnsupportedOperationException("Must implement the behavior for this feature.");
+                }
+
                 TopicFilterBuilder currentTopicBuilder = new TopicFilterBuilder(topicBuilder);
-                currentTopicFilter = currentTopicBuilder.radius("100").unit("km").build();
+
+                MqttShoutMessage responseToMessage = (MqttShoutMessage)messageBrokerWithUi.getMessageFromID(((MqttReplyMessage)msgToSend).getResponseTo());
+                if (responseToMessage == null) {
+                    Log.e ("GPSCHAT", "Something weird happened. Seems that you're trying to respond to a message that you can't see. Check below.");
+                    Log.e ("GPSCHAT", msgToSend.toString());
+                    return;
+                }
+                Location currentLatLng = new Location(LocationManager.GPS_PROVIDER);
+                currentLatLng.setLatitude(responseToMessage.getLocation().latitude);
+                currentLatLng.setLongitude(responseToMessage.getLocation().longitude);
+                currentTopicFilter = currentTopicBuilder.radius("10").unit("km").location(currentLatLng).build();
             }
 
             String jsonPayload = mapper.writeValueAsString(evt.getPayloadMessage());
