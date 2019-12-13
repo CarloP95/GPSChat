@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import androidx.annotation.NonNull;
@@ -50,7 +51,7 @@ import okhttp3.Response;
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
- * A login screen that offers login via email/password.
+ * A register screen that offers login via email/password.
  */
 public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor> {
 
@@ -61,7 +62,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 
 
     /**
-     * Keep track of the login task to ensure we can cancel it if requested.
+     * Keep track of the register task to ensure we can cancel it if requested.
      */
     private UserRegisterTask mRegisterTask = null;
 
@@ -164,9 +165,6 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
-        if (mRegisterTask != null) {
-            return;
-        }
 
         // Reset errors.
         mEmailView.setError(null);
@@ -381,7 +379,16 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
         @Override
         public void onPostExecute(final Boolean success) {
             showProgress(false);
-            Toast.makeText(register_context, "Result of registration is " + success.toString(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(register_context, success.equals(true) ?
+                    "Successfully Registered." :
+                    "Some error occurred in the registration process", Toast.LENGTH_SHORT).show();
+
+            if (success) {
+                Intent i = new Intent();
+                i.putExtra("registered_email", mUserId);
+                setResult(RESULT_OK, i);
+                finish();
+            }
         }
     }
 

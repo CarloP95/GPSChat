@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
-import java.text.ParseException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -118,7 +116,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(context, RegisterActivity.class);
-                startActivity(i);
+                startActivityForResult(i, 1);
             }
         });
 
@@ -126,6 +124,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
         preferences = getSharedPreferences(pref_string, Context.MODE_PRIVATE);
         launchIfTokenIsValid();
+    }
+
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            mEmailView.setText(data.getStringExtra("registered_email"));
+        }
     }
 
 
@@ -379,7 +385,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onPostExecute(final Boolean success) {
             showProgress(false);
-            Toast.makeText(login_context, "Result of authentication is " + success.toString(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(login_context, success.equals(true) ?
+                    "Successfully authenticated" :
+                    "Email or Password are not correct", Toast.LENGTH_SHORT).show();
 
             if(success) {
                 launchMainActivity();

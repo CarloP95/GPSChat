@@ -21,9 +21,21 @@ public class TopicFilterBuilder {
     private static final String equalKey       = "=";
 
     public TopicFilterBuilder(String baseTopicFilter) {
-        this.baseTopicFilter = baseTopicFilter != null ?
+        this.baseTopicFilter = !baseTopicFilter.equals("") ?
                                             baseTopicFilter:
                                             this.baseTopicFilter;
+    }
+
+    /*
+    * Copy constructor
+    * */
+    public TopicFilterBuilder(TopicFilterBuilder copy) {
+        this.unit = copy.unit;
+        this.shape = copy.shape;
+        this.radius = copy.radius;
+        this.location = copy.location;
+        this.timestamp = copy.timestamp;
+        this.baseTopicFilter = copy.baseTopicFilter;
     }
 
     public TopicFilterBuilder unit(String unit) {

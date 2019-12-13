@@ -35,8 +35,12 @@ public class MessageHandlerContainer {
         this.uiMap = uiMap;
     }
 
-    public MqttBaseMessage getMessageFromMarker(Marker m) {
+    public MqttBaseMessage getMessageFromMarker (Marker m) {
         return mMarkerMQTTMessages.get(m.getId());
+    }
+
+    public MqttBaseMessage getMessageFromID (Long id) {
+        return mMQTTPayloadMessages.get(id);
     }
 
     public MessageHandlerContainer pushMessage(MqttBaseMessage msg) {

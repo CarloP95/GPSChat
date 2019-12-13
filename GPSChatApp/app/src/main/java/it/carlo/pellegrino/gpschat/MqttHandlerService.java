@@ -30,6 +30,7 @@ import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MainActivityMessageEv
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MqttMessagePayloadEvent;
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.WrapperEventForMessageHandler;
 import it.carlo.pellegrino.gpschat.messageHandlers.MessageHandlerContainer;
+import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttBaseMessage;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttShoutMessage;
 import it.carlo.pellegrino.gpschat.topicUtils.TopicFilterBuilder;
 
@@ -46,7 +47,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
     private SharedPreferences preferences;
 
-    private final TopicFilterBuilder topicBuilder  = new TopicFilterBuilder(null);
+    private final TopicFilterBuilder topicBuilder  = new TopicFilterBuilder("");
     private MessageHandlerContainer messageBrokerWithUi = null;
     private IMqttToken         subscribeToken      = null;
 
@@ -177,10 +178,24 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
         try {
 
+            boolean itsShoutMessage = evt.getPayloadMessage().getType() == MqttBaseMessage.TYPE_SHOUT;
+            /* Since the update/reply/delete message must be sent to the location of the previous message
+            *  other metadata must be added to the MqttBaseMessage. For now, set the radius to a high value
+            *  to mitigate the problem. */
+            String currentTopicFilter;
+            if (itsShoutMessage) {
+                currentTopicFilter = topicFilter;
+            }  else {
+                TopicFilterBuilder currentTopicBuilder = new TopicFilterBuilder(topicBuilder);
+                currentTopicFilter = currentTopicBuilder.radius("100").unit("km").build();
+            }
+
             String jsonPayload = mapper.writeValueAsString(evt.getPayloadMessage());
             Log.v("GPSCHAT", "Sending Payload: " + jsonPayload);
             byte[] payload = jsonPayload.getBytes();
-            client.publish(topicFilter, payload, qos, false);
+
+            //TODO: Must send the same topic filter of the base message.
+            client.publish(currentTopicFilter, payload, qos, false);
 
         } catch (MqttPersistenceException e) {
             e.printStackTrace();
