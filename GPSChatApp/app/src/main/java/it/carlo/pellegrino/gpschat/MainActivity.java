@@ -4,7 +4,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-import it.carlo.pellegrino.gpschat.imageUtils.ImageUtils;
 import it.carlo.pellegrino.gpschat.mapUtils.MqttPayloadMessageAdaptatorForMarker;
 import it.carlo.pellegrino.gpschat.mapUtils.UnitConverter;
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MainActivityMessageEvent;
@@ -21,7 +20,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -46,13 +44,16 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mikhaellopez.circularimageview.CircularImageView;
+import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -78,31 +79,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public static final String URL_KEY    = "geomqtt_url";
     public static final String TKN_KEY    = "token";
     public static final String SES_KEY    = "sessionId";
-
-
-    private String chosenRadius;
-    private String chosenUnit;
-    private Location currentLocation      = null;
-    private Circle currentPublishCircle   = null;
-
-    private SharedPreferences preferences;
-    private String            nickname;
-
     private int FINE_LOC_PERMISSION   = PackageManager.PERMISSION_DENIED;
     private int COARSE_LOC_PERMISSION = PackageManager.PERMISSION_DENIED;
 
-    private static int zoom = 150;
-    private boolean backPressedOneTime = false;
+
+    private String mChosenRadius;
+    private String mChosenUnit;
+    private Location mCurrentLocation = null;
+    private Circle mCurrentPublishCircle = null;
+
+    private SharedPreferences mPreferences;
+    private String mNickname;
+
+    private static int mZoom = 150;
+    private boolean mBackPressedOneTime = false;
     private static List<String> mOpenInfoWindows = null;
 
 
-    private EventBus processEventBus = EventBus.getDefault();
-    private Context currentContext = null;
-    private MessageHandlerContainer messageHandler = null;
+    private EventBus mProcessEventBus = EventBus.getDefault();
+    private Context mCurrentContext = null;
+    private MessageHandlerContainer mMessageHandler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initImageLoader(this);
         setContentView(R.layout.activity_main);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -118,12 +119,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION}, COARSE_LOC_PERMISSION);
         }
 
-        preferences  = getSharedPreferences(LoginActivity.pref_string, Context.MODE_PRIVATE);
-        nickname     = preferences.getString(LoginActivity.pref_string_nickname, "");
+        mPreferences = getSharedPreferences(LoginActivity.pref_string, Context.MODE_PRIVATE);
+        mNickname = mPreferences.getString(LoginActivity.pref_string_nickname, "");
         // Implement on Change Listener for preferences
-        chosenRadius = preferences.getString(getResources().getString(R.string.key_shout_radius), "");
-        chosenUnit   = "m"; //Will implement in future
-        Log.i("GPSCHAT", "Chosen Radius is: " + chosenRadius);
+        mChosenRadius = mPreferences.getString(getResources().getString(R.string.key_shout_radius), "1000");
+        mChosenUnit = "m"; //Will implement in future
+        Log.i("GPSCHAT", "Chosen Radius is: " + mChosenRadius);
         mGPSManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, gpschatLatLonProvider);
         mOpenInfoWindows = new LinkedList<>();
 
@@ -141,19 +142,34 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mSettingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(currentContext, SettingsActivity.class);
+                Intent i = new Intent(mCurrentContext, SettingsActivity.class);
                 startActivity(i);
             }
         });
         addCallbackForBackPressed();
-        currentContext = getApplicationContext();
+        mCurrentContext = getApplicationContext();
     }
+
+    public static void initImageLoader(Context context) {
+
+        ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
+        config.threadPriority(Thread.NORM_PRIORITY - 2);
+        config.denyCacheImageMultipleSizesInMemory();
+        config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
+        config.diskCacheSize(50 * 1024 * 1024); // 50 MiB
+        config.tasksProcessingOrder(QueueProcessingType.LIFO);
+        config.writeDebugLogs(); // Remove for release app
+
+        // Initialize ImageLoader with configuration.
+        ImageLoader.getInstance().init(config.build());
+    }
+
 
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
      * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
+     * we just add a marker near Rome, Italy.
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -173,31 +189,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent launchServiceIntent = new Intent(this, MqttHandlerService.class);
         launchServiceIntent.putExtra(URL_KEY, "tcp://0.tcp.ngrok.io:10658");
-        launchServiceIntent.putExtra(TKN_KEY, preferences.getString(LoginActivity.pref_string_token, ""));
-        launchServiceIntent.putExtra(SES_KEY, preferences.getString(LoginActivity.pref_string_sessionId, ""));
+        launchServiceIntent.putExtra(TKN_KEY, mPreferences.getString(LoginActivity.pref_string_token, ""));
+        launchServiceIntent.putExtra(SES_KEY, mPreferences.getString(LoginActivity.pref_string_sessionId, ""));
         startService(launchServiceIntent);
 
-        processEventBus.register(this);
-        processEventBus.postSticky(new MainActivityMessageEvent()
-                .setLocation(currentLocation)
+        mProcessEventBus.register(this);
+        mProcessEventBus.postSticky(new MainActivityMessageEvent()
+                .setLocation(mCurrentLocation)
         );
-        messageHandler = new MessageHandlerContainer(mMap);
-        processEventBus.postSticky(new WrapperEventForMessageHandler(messageHandler));
-        messageHandler.pushMessage(new MqttShoutMessage(new MqttBaseMessage.Builder()
+        mMessageHandler  = new MessageHandlerContainer(mMap);
+        mProcessEventBus.postSticky(new WrapperEventForMessageHandler(mMessageHandler));
+        mMessageHandler.pushMessage(new MqttShoutMessage(new MqttBaseMessage.Builder()
                 .id(1)
                 .message("Hello, this is my current position")
-                .nickname(nickname)
-                .resources("")
+                .nickname(mNickname)
+                .resources("https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png")
                 .revision(0L)
                 .type(MqttBaseMessage.TYPE_SHOUT)
                 .timestamp(new Date().toString())
                 .build(),
-                new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())
+                new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude())
                 )
         );
-        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+        mMessageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
                 .id(2)
-                .message("Hello " + nickname + ", my name is John.")
+                .message("Hello " + mNickname + ", my name is John.")
                 .nickname("John")
                 .resources("")
                 .revision(0L)
@@ -207,10 +223,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 1L
                 )
         );
-        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+        mMessageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
                         .id(3)
                         .message("Hello John! Welcome to GPSChat")
-                        .nickname(nickname)
+                        .nickname(mNickname)
                         .resources("")
                         .revision(0L)
                         .type(MqttBaseMessage.TYPE_REPLY)
@@ -219,7 +235,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         1L
                 )
         );
-        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+        mMessageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
                         .id(4)
                         .message("Hello Everyone! I am Paul.")
                         .nickname("Paul")
@@ -231,7 +247,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         1L
                 )
         );
-        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+        mMessageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
                         .id(5)
                         .message("And i'm Mario")
                         .nickname("Mario")
@@ -243,12 +259,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         1L
                 )
         );
-        messageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
+        mMessageHandler.pushMessage(new MqttReplyMessage(new MqttBaseMessage.Builder()
                         .id(6)
                         .message("I was just wondering if spamming with text does the text " +
                                 "wrap in the next line, or if it produces some weird graphic effect. " +
                                 "Let's test it with this looooooong message. Hi All! I'm the producer of this app.")
-                        .nickname(nickname)
+                        .nickname(mNickname)
                         .resources("")
                         .revision(0L)
                         .type(MqttBaseMessage.TYPE_REPLY)
@@ -262,31 +278,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void displayCurrentPositionAndSubscribeRadius() {
-        currentLocation = getLastLocationFromProviders();
-        if (currentLocation == null) {
-            currentLocation = new Location("");
-            currentLocation.setLongitude(12.48870849609375);
-            currentLocation.setLatitude(41.88592102814744);
+        mCurrentLocation = getLastLocationFromProviders();
+        if (mCurrentLocation == null) {
+            mCurrentLocation = new Location("");
+            mCurrentLocation.setLongitude(12.48870849609375);
+            mCurrentLocation.setLatitude(41.88592102814744);
         }
 
-        if (currentLocation != null) {
-            Bitmap image = ImageUtils.getTransparentImage("https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png");
+        if (mCurrentLocation != null) {
 
-            LatLng currentLtLn = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            Marker f = mMap.addMarker(new MarkerOptions()
+            LatLng currentLtLn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+            // TODO: Send a message to display your current position with your avatar
+            final MarkerOptions mo = new MarkerOptions()
                     .position(currentLtLn)
                     .title("Current Position")
-                    .snippet("This is your current position")
-                    .icon(BitmapDescriptorFactory.fromBitmap(image))
-            );
+                    .snippet("This is your current position");
+
+            mMap.addMarker(mo);
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLtLn, 10));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLtLn));
 
-            if (currentPublishCircle != null)
-                currentPublishCircle.remove();
+            if (mCurrentPublishCircle != null)
+                mCurrentPublishCircle.remove();
 
-            currentPublishCircle = MqttPayloadMessageAdaptatorForMarker.drawCircle(mMap, currentLtLn, UnitConverter.convertInMeters(chosenRadius, chosenUnit));
+            mCurrentPublishCircle = MqttPayloadMessageAdaptatorForMarker.drawCircle(mMap, currentLtLn, UnitConverter.convertInMeters(mChosenRadius, mChosenUnit));
         }
     }
 
@@ -295,14 +311,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         MqttBaseMessage.Builder builder = new MqttShoutMessage.Builder();
         MqttBaseMessage baseToSend = builder
                 .message(mPublishMessage.getText().toString())
-                .nickname(nickname)
+                .nickname(mNickname)
                 .resources("") //Will set resources in future
                 .id(UUID.randomUUID().getLeastSignificantBits()) // Temporary implementation
                 .build();
 
-        MqttShoutMessage toSend = new MqttShoutMessage(baseToSend, new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+        MqttShoutMessage toSend = new MqttShoutMessage(baseToSend, new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
 
-        processEventBus.post(new MqttMessagePayloadEvent(toSend));
+        mProcessEventBus.post(new MqttMessagePayloadEvent(toSend));
     }
 
     private Location getLastLocationFromProviders() {
@@ -331,7 +347,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         int transparency = 0xEB000000;
         window.setBackgroundDrawable(new ColorDrawable(transparency + color));
 
-        final MqttBaseMessage msg = messageHandler.getMessageFromMarker(marker);
+        final MqttBaseMessage msg = mMessageHandler.getMessageFromMarker(marker);
 
         TextView nicknameTV = popup.findViewById(R.id.nickname_shout_text_view),
                 dateTV = popup.findViewById(R.id.date_shout_text_view),
@@ -339,7 +355,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (msg != null) {
             String msgNickname = msg.getNickname();
-            nicknameTV.setText(msgNickname.equals(nickname) ? "You" : msgNickname);
+            nicknameTV.setText(msgNickname.equals(mNickname) ? "You" : msgNickname);
             dateTV.setText(msg.getTimestamp());
             messageTV.setText(msg.getMessage());
 
@@ -353,13 +369,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             .id(UUID.randomUUID().getLeastSignificantBits())
                             .type(MqttBaseMessage.TYPE_REPLY)
                             .revision(0L)
-                            .nickname(nickname)
+                            .nickname(mNickname)
                             .timestamp(new Date().toString())
                             .resources("")
                             .build(),
                             msg.getId()
                     );
-                    processEventBus.post(new MqttMessagePayloadEvent(reply));
+                    mProcessEventBus.post(new MqttMessagePayloadEvent(reply));
                     writtenText.setText("");
                 }
             });
@@ -384,7 +400,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         getResources().getDisplayMetrics()
                 );
 
-                boolean itsYourMessage = replyMessage.getNickname().equals(nickname);
+                boolean itsYourMessage = replyMessage.getNickname().equals(mNickname);
 
                 TextView forEach_dateTV = new TextView(this);
                 height = LinearLayout.LayoutParams.WRAP_CONTENT;
@@ -489,8 +505,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
             @Override
             public void handleOnBackPressed() {
-                if (!backPressedOneTime)
-                    backPressedOneTime = !backPressedOneTime;
+                if (!mBackPressedOneTime)
+                    mBackPressedOneTime = !mBackPressedOneTime;
                 else
                     finishAndRemoveTask();
             }
@@ -511,7 +527,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             );
 
             mMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, zoom));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, mZoom));
 
             Toast.makeText(
                     getApplicationContext(),

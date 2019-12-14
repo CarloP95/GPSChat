@@ -16,15 +16,6 @@ public class MqttPayloadMessageAdaptatorForMarker {
     private static int circleBorderColorAlpha   = 0xA0000000;
     private static int circleBorderColorBack    = 0x3A445D; //Charcoal
 
-    public static Marker adapt(GoogleMap map, MqttShoutMessage msg) {
-
-        return map.addMarker(new MarkerOptions()
-                .position(msg.getLocation())
-                .title(msg.getNickname())
-                .snippet(msg.getMessage())
-        );
-    }
-
 
     public static Circle drawCircle(GoogleMap map, LatLng currentLatLng, double radius) {
         return map.addCircle(new CircleOptions()

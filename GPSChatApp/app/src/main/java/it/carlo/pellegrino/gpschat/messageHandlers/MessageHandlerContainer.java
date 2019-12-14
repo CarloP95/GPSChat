@@ -1,18 +1,19 @@
 package it.carlo.pellegrino.gpschat.messageHandlers;
 
-import android.os.Message;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import it.carlo.pellegrino.gpschat.mapUtils.MqttPayloadMessageAdaptatorForMarker;
+import it.carlo.pellegrino.gpschat.imageUtils.ImageUtils;
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MqttMessageEvent;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttBaseMessage;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttReplyMessage;
@@ -24,15 +25,16 @@ public class MessageHandlerContainer {
     private HashMap<Long, MqttBaseMessage> mMQTTPayloadMessages;
     private HashMap<Long, Marker> mMessagesMarkers;
     private HashMap<String, MqttBaseMessage> mMarkerMQTTMessages;
-    private GoogleMap uiMap;
+    private GoogleMap mUiMap;
+
 
     private int previousHashCode = -1;
 
-    public MessageHandlerContainer(GoogleMap uiMap) {
+    public MessageHandlerContainer(GoogleMap mUiMap) {
         mMQTTPayloadMessages = new HashMap<>();
         mMarkerMQTTMessages = new HashMap<>();
         mMessagesMarkers = new HashMap<>();
-        this.uiMap = uiMap;
+        this.mUiMap = mUiMap;
     }
 
     public MqttBaseMessage getMessageFromMarker (Marker m) {
@@ -52,10 +54,6 @@ public class MessageHandlerContainer {
                 if (alreadyPresentMessage == null) {
                     // Display in map
                     Marker m = handleNotifyUI(false, msg);
-                    // Add in repositories
-                    mMQTTPayloadMessages.put(msg.getId(), msg);
-                    mMarkerMQTTMessages.put(m.getId(), msg);
-                    mMessagesMarkers.put(msg.getId(), m);
                 } else {
                     Log.i("GPSCHAT", "A message that is already present, returned as TYPE SHOUT. From Network Message: " + msg.toString() + "\nOld Message: " + alreadyPresentMessage.toString());
                 }
@@ -65,17 +63,13 @@ public class MessageHandlerContainer {
             case MqttBaseMessage.TYPE_UPDATE:
 
                 if (alreadyPresentMessage != null) {
-                    // Delete from Eepositories
+                    // Delete from Repositories
                     Marker m = mMessagesMarkers.remove(alreadyPresentMessage.getId());
                     MessageHandlerComponent.removeMarker(m);
                     mMarkerMQTTMessages.remove(m.getId());
                     mMQTTPayloadMessages.remove(alreadyPresentMessage.getId());
 
                     m = handleNotifyUI(false, msg);
-                    // Update Repositories
-                    mMQTTPayloadMessages.put(msg.getId(), msg);
-                    mMarkerMQTTMessages.put(m.getId(), msg);
-                    mMessagesMarkers.put(msg.getId(), m);
 
                 } else {
                     Log.i("GPSCHAT", "A message that is not present arrived as TYPE UPDATE. From Network Message: " + msg.toString());
@@ -115,17 +109,19 @@ public class MessageHandlerContainer {
     }
 
     private Marker handleNotifyUI(boolean force, MqttBaseMessage msg) {
-        Marker addedMarker = null;
+
         int currentHashCode = this.mMQTTPayloadMessages.hashCode();
 
         if (force || currentHashCode != previousHashCode) {
             notifyUI(msg);
-            addedMarker = MessageHandlerComponent.addMarker(this.uiMap, (MqttShoutMessage) msg);
+
+            UpdateMapTask t = new UpdateMapTask(mUiMap, (MqttShoutMessage)msg);
+            t.execute((Void) null);
         }
 
         this.previousHashCode = currentHashCode;
 
-        return addedMarker;
+        return null;
     }
 
     private void notifyUI(MqttBaseMessage msg) {
@@ -134,14 +130,50 @@ public class MessageHandlerContainer {
 
     private static class MessageHandlerComponent {
 
-        private static Marker addMarker(GoogleMap map, MqttShoutMessage msg) {
-            return MqttPayloadMessageAdaptatorForMarker.adapt(map, msg);
-        }
 
         private static void removeMarker(Marker m) {
             m.hideInfoWindow();
             m.remove();
         }
 
+    }
+
+    private class UpdateMapTask extends AsyncTask<Void, Void, MarkerOptions> {
+
+        private GoogleMap mMap;
+        private MqttShoutMessage mMsg;
+
+        public UpdateMapTask(GoogleMap map, MqttShoutMessage msg) {
+            mMap = map;
+            mMsg = msg;
+        }
+
+        @Override
+        protected MarkerOptions doInBackground(Void... params) {
+
+            String avatarUrl = mMsg.getResources().get(0);
+
+            MarkerOptions mo = new MarkerOptions()
+                    .title(mMsg.getNickname())
+                    .snippet(mMsg.getMessage())
+                    .position(mMsg.getLocation())
+                    .icon(BitmapDescriptorFactory.fromBitmap(ImageUtils.getBitmap(avatarUrl)));
+
+            return mo;
+        }
+
+        @Override
+        protected void onPostExecute(final MarkerOptions success) {
+            Marker m = mMap.addMarker(success);
+
+            mMQTTPayloadMessages.put(mMsg.getId(), mMsg);
+            mMarkerMQTTMessages.put(m.getId(), mMsg);
+            mMessagesMarkers.put(mMsg.getId(), m);
+        }
+
+        @Override
+        protected void onCancelled() {
+            Log.e("GPSCHAT", "Cancelled");
+        }
     }
 }
