@@ -1,6 +1,7 @@
 package it.carlo.pellegrino.gpschat.messageHandlers;
 
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -25,8 +26,13 @@ public class MessageHandlerContainer {
     private HashMap<Long, MqttBaseMessage> mMQTTPayloadMessages;
     private HashMap<Long, Marker> mMessagesMarkers;
     private HashMap<String, MqttBaseMessage> mMarkerMQTTMessages;
+    private HashMap<Long, MqttBaseMessage> mRecvMsgWithoutShout;
+    private HashMap<Long, Integer> mRecvMsgWithoutShoutTTL;
     private GoogleMap mUiMap;
+    private Handler mPeriodicHandlerForUpdates;
 
+    private static int TTL = 5;
+    private static int INTERVAL_PERIODIC_HANDLER_UPDATES_S = 10;
 
     private int previousHashCode = -1;
 
@@ -34,7 +40,40 @@ public class MessageHandlerContainer {
         mMQTTPayloadMessages = new HashMap<>();
         mMarkerMQTTMessages = new HashMap<>();
         mMessagesMarkers = new HashMap<>();
+        mRecvMsgWithoutShout = new HashMap<>();
+        mRecvMsgWithoutShoutTTL = new HashMap<>();
         this.mUiMap = mUiMap;
+
+        // Handler used to cache replies that has not a Shout counterpart
+        this.mPeriodicHandlerForUpdates = new Handler();
+        // TODO: Must cast if type is different than MQTTReplyMessage
+        Runnable checkForNewShouts = new Runnable() {
+            @Override
+            public void run() {
+                Log.v("GPSCHAT","Starting routine to clean or update the UI with reply messages");
+                // Check for updates & Decrease TTL for those replies that has no shout counterpart
+                mRecvMsgWithoutShout.forEach( (key, value) -> {
+                    MqttReplyMessage reply = (MqttReplyMessage)value;
+                    if (mMQTTPayloadMessages.containsKey(reply.getResponseTo())) {
+                        Log.v("GPSCHAT", "Msg with id " + value.getId() + " in response to " + (reply.getResponseTo()) + " now has a shout.. Sending to display it.");
+                        pushMessage(value);
+                    } else {
+                        mRecvMsgWithoutShoutTTL.put(key, mRecvMsgWithoutShoutTTL.get(key) - 1 );
+
+                        // Delete replies that has 0 TTL
+                        if (mRecvMsgWithoutShoutTTL.get(key) <= 0) {
+                            Log.v("GPSCHAT", "Msg with ID " + value.getId() + " is being removed..");
+                            mRecvMsgWithoutShoutTTL.remove(key);
+                            mRecvMsgWithoutShout.remove(key);
+                        }
+                    }
+                });
+
+                mPeriodicHandlerForUpdates.postDelayed(this,INTERVAL_PERIODIC_HANDLER_UPDATES_S *1000);
+            }
+        };
+
+        this.mPeriodicHandlerForUpdates.post(checkForNewShouts);
     }
 
     public MqttBaseMessage getMessageFromMarker (Marker m) {
@@ -73,6 +112,8 @@ public class MessageHandlerContainer {
 
                 } else {
                     Log.i("GPSCHAT", "A message that is not present arrived as TYPE UPDATE. From Network Message: " + msg.toString());
+                    mRecvMsgWithoutShout.put(msg.getId(), msg);
+                    mRecvMsgWithoutShoutTTL.put(msg.getId(), TTL);
                 }
                 break;
             case MqttBaseMessage.TYPE_REPLY:
@@ -85,6 +126,8 @@ public class MessageHandlerContainer {
 
                 } else {
                     Log.i("GPSCHAT", "A Reply to a message that is not present arrived as TYPE REPLY. From Network Message: " + msg.toString());
+                    mRecvMsgWithoutShout.put(msg.getId(), msg);
+                    mRecvMsgWithoutShoutTTL.put(msg.getId(), TTL);
                 }
                 break;
             case MqttBaseMessage.TYPE_DELETE:
