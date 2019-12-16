@@ -312,7 +312,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         MqttBaseMessage baseToSend = builder
                 .message(mPublishMessage.getText().toString())
                 .nickname(mNickname)
-                .resources("") //Will set resources in future
+                .resources("") //TODO: Set avatar url in Minio
                 .id(UUID.randomUUID().getLeastSignificantBits()) // Temporary implementation
                 .timestamp(new Date().toString())
                 .build();
@@ -335,7 +335,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-
+        //TODO: Must display dynamically even when the user sends some data on the chat.
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View popup = inflater.inflate(R.layout.shout_responses_layout, null);
         int width = LinearLayout.LayoutParams.MATCH_PARENT,
@@ -434,8 +434,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     if (urlOfPortrait.equals("")) {
                         portrait.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
                     } else {
-                        // Implement set background with correct photo
-                        portrait.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
+                        ImageLoader.getInstance().displayImage(urlOfPortrait, portrait);
+                        portrait.setBackgroundResource(R.drawable.userninjasolid); //Requested User Photo
                     }
                     llParent.addView(portrait);
                 }
@@ -456,8 +456,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 forEach_Nickname.setText(itsYourMessage ? "You" : replyMessage.getNickname());
                 forEach_Nickname.setTextColor(Color.BLACK);
                 forEach_Message.setLayoutParams(new LinearLayout.LayoutParams(width, height));
-                //forEach_Message.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-                //forEach_Message.setTypeface(forEach_Message.getTypeface(), Typeface.BOLD);
                 forEach_Message.setText(replyMessage.getMessage());
                 forEach_Message.setTextColor(Color.BLACK);
                 llChild.addView(forEach_Nickname);
@@ -474,7 +472,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             displayMessagesLayout.addView(ll);
 
         window.showAtLocation(this.getCurrentFocus(), Gravity.CENTER, 0, 0);
-
     }
 
     // TODO: Move to the component that will have the responsibility to display Markers
@@ -497,9 +494,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void messageReceived(MqttMessageEvent message) {
         Log.v("GPSCHAT", "Received message from MQTTService");
         Toast.makeText(this, message.getPayloadMessage().toString(), Toast.LENGTH_SHORT).show();
-
-        //MqttPayloadMessageAdaptatorForMarker.adapt(mMap, message.getPayloadMessage());
-        // Handled by MessageHandlerComponent
+        // Can send MSG HERE
     }
 
     private void addCallbackForBackPressed () {

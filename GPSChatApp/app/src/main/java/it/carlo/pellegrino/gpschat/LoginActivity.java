@@ -57,9 +57,6 @@ import okhttp3.Response;
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
-    /**
-     *
-     */
     public Context context;
 
     public static String pref_string = "com.gpschat";
