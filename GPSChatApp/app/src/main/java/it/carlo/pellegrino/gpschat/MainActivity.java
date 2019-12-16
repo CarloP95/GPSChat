@@ -188,7 +188,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         displayCurrentPositionAndSubscribeRadius();
 
         Intent launchServiceIntent = new Intent(this, MqttHandlerService.class);
-        launchServiceIntent.putExtra(URL_KEY, "tcp://0.tcp.ngrok.io:10658");
+        launchServiceIntent.putExtra(URL_KEY, "tcp://ec2-52-90-157-176.compute-1.amazonaws.com:1883");
         launchServiceIntent.putExtra(TKN_KEY, mPreferences.getString(LoginActivity.pref_string_token, ""));
         launchServiceIntent.putExtra(SES_KEY, mPreferences.getString(LoginActivity.pref_string_sessionId, ""));
         startService(launchServiceIntent);
@@ -314,6 +314,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .nickname(mNickname)
                 .resources("") //Will set resources in future
                 .id(UUID.randomUUID().getLeastSignificantBits()) // Temporary implementation
+                .timestamp(new Date().toString())
                 .build();
 
         MqttShoutMessage toSend = new MqttShoutMessage(baseToSend, new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));

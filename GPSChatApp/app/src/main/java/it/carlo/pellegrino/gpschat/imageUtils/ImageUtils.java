@@ -30,8 +30,12 @@ public class ImageUtils {
             e.printStackTrace();
         }
         Bitmap bmp = BitmapFactory.decodeStream(buffer);
-        bmp.setHasAlpha(true);
-        return scaleKeepingProportions(bmp, 0, size);
+        if (bmp != null) {
+            bmp.setHasAlpha(true);
+            return scaleKeepingProportions(bmp, 0, size);
+        } else {
+            return null;
+        }
     }
 
 

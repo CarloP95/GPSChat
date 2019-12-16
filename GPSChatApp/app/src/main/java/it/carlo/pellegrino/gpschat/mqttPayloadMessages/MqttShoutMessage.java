@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "resources",
         "location",
         "timestamp",
-        "#replies",
+        "numReplies",
         "replies",
         "revision"
 })
@@ -54,12 +54,12 @@ public class MqttShoutMessage extends MqttBaseMessage {
     private static String LOCATION_STRING     = "location";
     private static String LATITUDE_STRING     = "latitude";
     private static String LONGITUDE_STRING    = "longitude";
-    private static String NUMREPLIES_STRING   = "#replies";
+    private static String NUMREPLIES_STRING   = "numReplies";
     private static String REPLIES_STRING      = "replies";
 
     @JsonProperty("location")
     private LatLng location;
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     private Long numReplies;
     @JsonProperty("replies")
     private List<MqttReplyMessage> replies;
@@ -93,12 +93,12 @@ public class MqttShoutMessage extends MqttBaseMessage {
         this.location = location;
     }
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     public Long getNumReplies() {
         return numReplies;
     }
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     public void setNumReplies(Long numReplies) {
         this.numReplies = numReplies;
     }
@@ -137,4 +137,5 @@ public class MqttShoutMessage extends MqttBaseMessage {
         this.numReplies = 0L;
         this.replies    = new ArrayList<>();
     }
+
 }

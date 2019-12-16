@@ -72,8 +72,9 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
         this.clientId = MqttClient.generateClientId();
         this.options  = new MqttConnectOptions();
-        this.url      = preferences.getString(getResources().getString(R.string.key_mqtt_url),
-                intent.getExtras().getString(MainActivity.URL_KEY));
+        this.url      = intent.getExtras().getString(MainActivity.URL_KEY);
+        /*this.url      = preferences.getString(getResources().getString(R.string.key_mqtt_url),
+                intent.getExtras().getString(MainActivity.URL_KEY));*/
 
         this.options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
         this.options.setCleanSession(true);
@@ -126,8 +127,8 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
     }
 
     private void onConnectionFailure(IMqttToken asyncActionToken, Throwable exception) {
-        Log.e("GPSCHAT", exception.getLocalizedMessage());
-        Log.e("GPSCHAT", asyncActionToken.getException().getMessage());
+        Log.e("GPSCHAT", "Error when connecting with MQTT Broker: " +  exception.getLocalizedMessage());
+//      Log.e("GPSCHAT", asyncActionToken.getException().getMessage());
         //processEventBus.post(new MqttMessageEvent("!Connected with the MQTT broker."));
     }
 
@@ -210,7 +211,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
                 currentTopicFilter = currentTopicBuilder.radius("10").unit("km").location(currentLatLng).build();
             }
 
-            String jsonPayload = mapper.writeValueAsString(evt.getPayloadMessage());
+            String jsonPayload = mapper.writeValueAsString(msgToSend);
             Log.v("GPSCHAT", "Sending Payload: " + jsonPayload);
             byte[] payload = jsonPayload.getBytes();
 
@@ -233,7 +234,21 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        MqttShoutMessage unMarshalledMqttMessage = new MqttShoutMessage(new String(message.getPayload()));
+        MqttBaseMessage unMarshalledMqttMessage = new MqttBaseMessage(new String(message.getPayload()));
+
+        switch (unMarshalledMqttMessage.getType()) {
+            case MqttBaseMessage.TYPE_SHOUT:
+                unMarshalledMqttMessage = new MqttShoutMessage(new String(message.getPayload()));
+                break;
+            case MqttBaseMessage.TYPE_REPLY:
+                unMarshalledMqttMessage = new MqttReplyMessage(new String(message.getPayload()));
+                break;
+            case MqttBaseMessage.TYPE_DELETE:
+                throw new UnsupportedOperationException("Must implement behavior for Delete message");
+            case MqttBaseMessage.TYPE_UPDATE:
+                throw new UnsupportedOperationException("Must implement behavior for Update message");
+        }
+
         messageBrokerWithUi.pushMessage(unMarshalledMqttMessage);
     }
 

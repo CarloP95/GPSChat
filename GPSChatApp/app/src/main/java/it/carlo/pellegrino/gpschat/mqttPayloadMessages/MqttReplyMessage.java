@@ -22,18 +22,18 @@ import androidx.annotation.NonNull;
         "message",
         "resources",
         "timestamp",
-        "#replies",
+        "numReplies",
         "replies",
         "revision"
 })
 
 public class MqttReplyMessage extends MqttBaseMessage {
 
-    private String NUMREPLIES_STRING = "#replies";
+    private String NUMREPLIES_STRING = "numReplies";
     private String REPLIES_STRING    = "replies";
     private String RESPONSETO_STRING = "responseTo";
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     private Long numReplies;
     @JsonProperty("replies")
     private List<MqttReplyMessage> replies;
@@ -69,12 +69,12 @@ public class MqttReplyMessage extends MqttBaseMessage {
         this.responseTo = responseTo;
     }
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     public Long getNumReplies() {
         return numReplies;
     }
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     public void setNumReplies(Long numReplies) {
         this.numReplies = numReplies;
     }
