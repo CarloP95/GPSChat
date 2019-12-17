@@ -11,19 +11,14 @@ services:
         - network
 
   mmm:
-    image: 'carlop95/3m'
-    #ports:
-    # Do not expose any ports.
-    #    - '10203:10203'
+    image: carlop95/3m
+    ports:
+        - '10203:10203/udp'
     networks:
         - network
 
   object-storage:
     image: 'minio/minio'
-
-    #ports:
-    # Do not expose any ports
-      #- '9000:9000'
 
     environment:
       MINIO_ACCESS_KEY: "3M-Gps-Chat"
@@ -31,6 +26,13 @@ services:
     command: server /data
     networks:
       - network
+      
+  im:
+    image: carlop95/interaction-manager:1.0
+    ports:
+        - '5683:5683'
+    networks:
+        - network
 
 networks:
   network:
