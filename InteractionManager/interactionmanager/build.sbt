@@ -1,4 +1,4 @@
-name := "akka-quickstart-scala"
+name := "interaction-manager"
 
 version := "1.0"
 
@@ -17,3 +17,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
   "org.scalatest" %% "scalatest" % "3.0.8" % Test
 )
+
+enablePlugins(JavaAppPackaging)
+enablePlugins(AshScriptPlugin)
+enablePlugins(DockerPlugin)
+
+mainClass in Compile := Some("com.carlop.Main")
+dockerBaseImage      := "openjdk:jre-alpine"
