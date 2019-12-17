@@ -20,8 +20,8 @@ object InteractionManagerServer {
         val defaultSecurePort: Int  = config.getInt(Keys.COAP_SECURE_PORT)
 
         config
-            .setInt(Keys.COAP_PORT, defaultPort + 100)
-            .setInt(Keys.COAP_SECURE_PORT, defaultSecurePort + 100)
+            .setInt(Keys.COAP_PORT, defaultPort /*+ 100*/)
+            .setInt(Keys.COAP_SECURE_PORT, defaultSecurePort /*+ 100*/)
             .setInt(Keys.MAX_RESOURCE_BODY_SIZE, DEFAULT_MAX_RESOURCE_SIZE)
             .setInt(Keys.MAX_MESSAGE_SIZE, DEFAULT_BLOCK_SIZE)
             .setInt(Keys.PREFERRED_BLOCK_SIZE, DEFAULT_BLOCK_SIZE)

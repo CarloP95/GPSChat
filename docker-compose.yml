@@ -4,16 +4,15 @@ version: '3.3'
 services:
 
   broker:
-    image: 'carlop95/geo-mqtt'
+    image: carlop95/gps-mqtt:1.0
     ports:
         - '1883:1883'
-        
     networks:
         - network
 
   mmm:
     image: 'carlop95/3m'
-    ports:
+    #ports:
     # Do not expose any ports.
     #    - '10203:10203'
     networks:
@@ -22,14 +21,14 @@ services:
   object-storage:
     image: 'minio/minio'
 
-    ports:
+    #ports:
     # Do not expose any ports
       #- '9000:9000'
 
     environment:
       MINIO_ACCESS_KEY: "3M-Gps-Chat"
       MINIO_SECRET_KEY: "MMMmmmMMM"
-
+    command: server /data
     networks:
       - network
 

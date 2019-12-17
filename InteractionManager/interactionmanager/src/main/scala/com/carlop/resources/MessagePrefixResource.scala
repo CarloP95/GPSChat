@@ -43,25 +43,25 @@ class MessagePrefixResource(name: String, visible: Boolean, collection: MongoCol
         private var error: Option[Throwable] = None
     
         override def onSubscribe(s: Subscription): Unit = {
-          subscription = Some(s)
-          s.request(Integer.MAX_VALUE)
+            subscription = Some(s)
+            s.request(Integer.MAX_VALUE)
         }
     
         override def onNext(t: T): Unit = {
-          resultsBuffer.append(t)
-          if (printResults) println(t)
-          if (resultsBuffer.size >= minimumNumberOfResults) latch.countDown()
-          changed()
+            resultsBuffer.append(t)
+            if (printResults) println(t)
+            if (resultsBuffer.size >= minimumNumberOfResults) latch.countDown()
+            changed()
         }
     
         override def onError(t: Throwable): Unit = {
-          error = Some(t)
-          println(t.getMessage)
-          onComplete()
+            error = Some(t)
+            println(t.getMessage)
+            onComplete()
         }
     
         override def onComplete(): Unit = {
-          latch.countDown()
+            latch.countDown()
         }
     
         def results(): List[T] = resultsBuffer.toList
@@ -72,8 +72,8 @@ class MessagePrefixResource(name: String, visible: Boolean, collection: MongoCol
         }
     
         def waitForThenCancel(): Unit = {
-          if (minimumNumberOfResults > resultsBuffer.size) await()
-          subscription.foreach(_.unsubscribe())
+            if (minimumNumberOfResults > resultsBuffer.size) await()
+                subscription.foreach(_.unsubscribe())
         }
       }
 

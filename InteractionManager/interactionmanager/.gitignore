@@ -2,6 +2,7 @@
 
 !.gitignore
 
-.metals
+*.metals
 target/*
 project/*
+*.bloop*

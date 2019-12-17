@@ -14,11 +14,10 @@ import org.slf4j.{LoggerFactory, Logger}
 import com.carlop.mongo.MongoBootstrapHandler
 import org.mongodb.scala.{MongoCollection, Document}
 
-
 object Main extends App {
     val log : Logger = LoggerFactory.getLogger("Main App Logger")
     log.info("Connecting with MongoDB")
-
+    
     val result: MongoBootstrapHandler.ReturnFromCreation = MongoBootstrapHandler("mongodb://localhost", "gpschat")
 
     log.info("Now Creating CoapResources...")
@@ -31,7 +30,6 @@ object Main extends App {
     val coapServer = InteractionManagerServer()
     
     log.info("Done!")
-
     /*val rel :CoapObserveRelation = client.observe(new CoapHandler {
         override def onError(): Unit = {
             
