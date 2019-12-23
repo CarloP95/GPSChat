@@ -1,11 +1,13 @@
 package it.carlo.pellegrino.gpschat;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import androidx.appcompat.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -115,6 +117,20 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 startActivityForResult(i, 1);
             }
         });
+
+        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.INTERNET,
+                    Manifest.permission.ACCESS_NETWORK_STATE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, 123);
+        }
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
@@ -244,10 +260,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private void launchIfTokenIsValid() {
 
         Log.i("GPSCHAT", "Entered in launchiftokenisvalid");
-        if ( preferences.getString(pref_string_token, "") != ""
-                && preferences.getString(pref_string_nickname, "") != ""
-                && preferences.getString(pref_string_sessionId, "") != ""
-                && preferences.getString(pref_string_expiresAt, "") != "" ) {
+        if ( preferences.getString(pref_string_token, "").equals("")
+                && preferences.getString(pref_string_nickname, "").equals("")
+                && preferences.getString(pref_string_sessionId, "").equals("")
+                && preferences.getString(pref_string_expiresAt, "").equals("") ) {
             Log.e("GPSCHAT", "Preferences are set up");
             DateFormat df = DateFormat.getTimeInstance();
 
@@ -263,6 +279,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private void launchMainActivity() {
+
         Intent i = new Intent(context, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);

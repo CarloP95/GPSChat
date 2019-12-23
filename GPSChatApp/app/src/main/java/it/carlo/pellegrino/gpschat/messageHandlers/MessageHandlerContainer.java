@@ -100,13 +100,7 @@ public class MessageHandlerContainer {
                 if (alreadyPresentMessage == null) {
                     // Display in map
                     Log.i("GPSCHAT", "Displaying Shout message");
-                    if (MqttShoutMessage.class.isInstance(msg)) {
-                        Log.i("GPSCHAT", "Can cast to Shout");
-                    } else {
-                        Log.i("GPSCHAT", "CANNOT CAST");
-                    }
                     MqttShoutMessage newMsg = (MqttShoutMessage)msg;
-                    Log.wtf("GPSCHAT", "We should not be here.");
                     Marker m = handleNotifyUI(false, newMsg);
                 } else {
                     Log.i("GPSCHAT", "A message that is already present, returned as TYPE SHOUT. From Network Message: " + msg.toString() + "\nOld Message: " + alreadyPresentMessage.toString());

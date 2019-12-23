@@ -14,12 +14,19 @@ import it.carlo.pellegrino.gpschat.messageHandlers.MessageHandlerContainer;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttBaseMessage;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttReplyMessage;
 import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttShoutMessage;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -28,13 +35,16 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -59,6 +69,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
@@ -100,8 +112,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Context mCurrentContext = null;
     private MessageHandlerContainer mMessageHandler = null;
 
+    private final String PREF_AVATAR_KEY = "gpschat.avatar";
+    private final static int RESULT_UPLOAD_AVATAR = 42;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         initImageLoader(this);
         setContentView(R.layout.activity_main);
@@ -146,6 +162,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 startActivity(i);
             }
         });
+
+        FloatingActionButton avatarButton = findViewById(R.id.avatarButton);
+        avatarButton.setOnClickListener( (click) -> {
+            Intent gallery = new Intent(
+                    Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(gallery, RESULT_UPLOAD_AVATAR);
+        });
+
         addCallbackForBackPressed();
         mCurrentContext = getApplicationContext();
     }
@@ -162,6 +187,82 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Initialize ImageLoader with configuration.
         ImageLoader.getInstance().init(config.build());
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case RESULT_UPLOAD_AVATAR:
+
+                if (resultCode == RESULT_OK) {
+
+                    Uri selectedImage = data.getData();
+                    Log.v("GPSCHAT", selectedImage.toString());
+                    String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                    Cursor cursor = getContentResolver().query(selectedImage,
+                            filePathColumn, null, null, null);
+                    cursor.moveToFirst();
+
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    String picturePath = cursor.getString(columnIndex);
+                    cursor.close();
+
+                    Runnable sendImage = () -> {
+                        BitmapFactory.Options opts = new BitmapFactory.Options();
+                        opts.inSampleSize = 4;
+                        OkHttpClient threeMClient = new OkHttpClient();
+                        String threeMURL = "http://192.168.1.102:10203/",
+                                baseApiURL = "3M/api/";
+
+                        Bitmap avatar = BitmapFactory.decodeFile(picturePath, opts);
+                        if (avatar != null) {
+                            ByteArrayOutputStream avatar2bytes = new ByteArrayOutputStream();
+                            avatar.compress(Bitmap.CompressFormat.JPEG, 100, avatar2bytes);
+
+                            RequestBody body = RequestBody.create(avatar2bytes.toByteArray());
+                            String avatarUrl = threeMURL + baseApiURL + mNickname.toLowerCase() + "/0";
+
+                            Request req = new Request.Builder()
+                                    .url(avatarUrl)
+                                    .post(body)
+                                    .build();
+
+                            try (Response res = threeMClient.newCall(req).execute()) {
+                                boolean success = res.isSuccessful();
+
+                                String res_body = res.body().string();
+                                if (success) {
+                                    Log.v("GPSCHAT","Avatar successfully uploaded");
+                                    mPreferences.edit().putString(PREF_AVATAR_KEY, avatarUrl).apply();
+                                } else {
+                                    Log.e("GPSCHAT", "Error in uploading image. Check Server Errors.");
+                                }
+
+                                Log.v("GPSCHAT", res.toString() + "\n" + res_body);
+
+                            } catch (IOException e) {
+                                Toast.makeText(mCurrentContext, "Error in uploading file. Something is wrong with the image.", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Log.v("GPSCHAT","Problems loading file");
+                        }
+                    };
+
+                    sendImage.run();
+
+
+                } else {
+                    Log.v("GPSCHAT", "Error retrieving image");
+                }
+                break;
+            default:
+                Log.e("GPSCHAT", "onActivityResult called without a correct requestCode.");
+                break;
+        }
     }
 
 
@@ -203,7 +304,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .id(1)
                 .message("Hello, this is my current position")
                 .nickname(mNickname)
-                .resources("https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png")
+                .resources(mPreferences.getString(PREF_AVATAR_KEY, "https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png"))
                 .revision(0L)
                 .type(MqttBaseMessage.TYPE_SHOUT)
                 .timestamp(new Date().toString())
@@ -312,7 +413,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         MqttBaseMessage baseToSend = builder
                 .message(mPublishMessage.getText().toString())
                 .nickname(mNickname)
-                .resources("") //TODO: Set avatar url in Minio
+                .resources(mPreferences.getString(PREF_AVATAR_KEY, ""))
                 .id(UUID.randomUUID().getLeastSignificantBits()) // Temporary implementation
                 .timestamp(new Date().toString())
                 .build();
@@ -353,12 +454,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         TextView nicknameTV = popup.findViewById(R.id.nickname_shout_text_view),
                 dateTV = popup.findViewById(R.id.date_shout_text_view),
                 messageTV = popup.findViewById(R.id.shout_message_text_view);
+        CircularImageView shouterAvatar = popup.findViewById(R.id.shout_img);
 
         if (msg != null) {
             String msgNickname = msg.getNickname();
             nicknameTV.setText(msgNickname.equals(mNickname) ? "You" : msgNickname);
             dateTV.setText(msg.getTimestamp());
             messageTV.setText(msg.getMessage());
+            String urlOfShouterAvatar = msg.getResources().get(0);
+            if (urlOfShouterAvatar.equals("")) {
+                shouterAvatar.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
+            } else {
+                ImageLoader.getInstance().displayImage(urlOfShouterAvatar, shouterAvatar); // Requested User Photo
+            }
 
             View replyButton = popup.findViewById(R.id.replyButton);
             replyButton.setOnClickListener(new View.OnClickListener() {
@@ -430,12 +538,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     LinearLayout.LayoutParams portraitLayoutParams = new LinearLayout.LayoutParams(dimensions, dimensions);
                     portraitLayoutParams.setMarginStart(complexMargin*2);
                     portrait.setLayoutParams(portraitLayoutParams);
-                    String urlOfPortrait = msg.getResources().get(0);
+                    String urlOfPortrait = replyMessage.getResources().get(0);
                     if (urlOfPortrait.equals("")) {
                         portrait.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
                     } else {
-                        ImageLoader.getInstance().displayImage(urlOfPortrait, portrait);
-                        portrait.setBackgroundResource(R.drawable.userninjasolid); //Requested User Photo
+                        ImageLoader.getInstance().displayImage(urlOfPortrait, portrait); // Requested User Photo
                     }
                     llParent.addView(portrait);
                 }
@@ -494,7 +601,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void messageReceived(MqttMessageEvent message) {
         Log.v("GPSCHAT", "Received message from MQTTService");
         Toast.makeText(this, message.getPayloadMessage().toString(), Toast.LENGTH_SHORT).show();
-        // Can send MSG HERE
     }
 
     private void addCallbackForBackPressed () {
