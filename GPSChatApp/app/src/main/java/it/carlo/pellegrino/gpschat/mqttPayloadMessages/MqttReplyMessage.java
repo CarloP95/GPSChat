@@ -22,18 +22,18 @@ import androidx.annotation.NonNull;
         "message",
         "resources",
         "timestamp",
-        "#replies",
+        "numReplies",
         "replies",
         "revision"
 })
 
 public class MqttReplyMessage extends MqttBaseMessage {
 
-    private String NUMREPLIES_STRING = "#replies";
+    private String NUMREPLIES_STRING = "numReplies";
     private String REPLIES_STRING    = "replies";
     private String RESPONSETO_STRING = "responseTo";
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     private Long numReplies;
     @JsonProperty("replies")
     private List<MqttReplyMessage> replies;
@@ -69,12 +69,12 @@ public class MqttReplyMessage extends MqttBaseMessage {
         this.responseTo = responseTo;
     }
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     public Long getNumReplies() {
         return numReplies;
     }
 
-    @JsonProperty("#replies")
+    @JsonProperty("numReplies")
     public void setNumReplies(Long numReplies) {
         this.numReplies = numReplies;
     }
@@ -103,4 +103,14 @@ public class MqttReplyMessage extends MqttBaseMessage {
                 "Replies: " + this.getReplies().toString() + "\n" +
                 "Resources: " + this.getResources().toString() + "\n";
     }
+
+    public MqttReplyMessage (MqttBaseMessage base, Long responseTo) {
+        super(base.type, base.revision, base.timestamp, base.message, base.nickname, base.id, base.resources);
+
+        this.responseTo = responseTo;
+        this.replies = new ArrayList<>();
+        this.numReplies = Long.valueOf(this.replies.size());
+
+    }
+
 }

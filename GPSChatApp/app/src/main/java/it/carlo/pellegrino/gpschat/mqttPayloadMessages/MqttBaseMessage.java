@@ -69,10 +69,10 @@ public class MqttBaseMessage {
         try {
             JSONObject jsonPayload        = new JSONObject(payload);
             JSONArray  payloadResources   = jsonPayload.getJSONArray(RESOURCES_STRING);
-
             this.resources = new ArrayList<>();
             for (int idx = 0; idx < payloadResources.length(); ++idx)
                 this.resources.add(payloadResources.get(idx).toString());
+
             this.timestamp = jsonPayload.getString(TIMESTAMP_STRING);
             this.message   = jsonPayload.getString(MESSAGE_STRING);
             this.nickname  = jsonPayload.getString(NICKNAME_STRING);
@@ -83,6 +83,7 @@ public class MqttBaseMessage {
         }
         catch (JSONException ex) {
             Log.e("GPSCHAT", "Received string that is not a valid JSON : " + payload);
+            Log.e("GPSCHAT", "Error is : "  + ex.getMessage());
         }
     }
 

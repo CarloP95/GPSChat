@@ -1,16 +1,16 @@
 package it.carlo.pellegrino.gpschat.messageBusMessageEvents;
 
-import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttShoutMessage;
+import it.carlo.pellegrino.gpschat.mqttPayloadMessages.MqttBaseMessage;
 
 public class MqttMessageEvent {
 
-    private final MqttShoutMessage messageToDisplay;
+    private final MqttBaseMessage messageToDisplay;
 
-    public MqttMessageEvent(MqttShoutMessage toDisplay) {
+    public MqttMessageEvent(MqttBaseMessage toDisplay) {
         messageToDisplay = toDisplay;
     }
 
-    public MqttShoutMessage getPayloadMessage() {
+    public MqttBaseMessage getPayloadMessage() {
         return this.messageToDisplay;
     }
 }

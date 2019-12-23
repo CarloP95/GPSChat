@@ -35,10 +35,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
-import java.text.ParseException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.eclipse.californium.core.CoapClient;
@@ -60,9 +57,6 @@ import okhttp3.Response;
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
-    /**
-     *
-     */
     public Context context;
 
     public static String pref_string = "com.gpschat";
@@ -118,7 +112,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(context, RegisterActivity.class);
-                startActivity(i);
+                startActivityForResult(i, 1);
             }
         });
 
@@ -128,6 +122,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         launchIfTokenIsValid();
     }
 
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            mEmailView.setText(data.getStringExtra("registered_email"));
+        }
+    }
+
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -135,9 +137,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
 
         // Reset errors.
         mEmailView.setError(null);
@@ -382,7 +381,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onPostExecute(final Boolean success) {
             showProgress(false);
-            Toast.makeText(login_context, "Result of authentication is " + success.toString(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(login_context, success.equals(true) ?
+                    "Successfully authenticated" :
+                    "Email or Password are not correct", Toast.LENGTH_SHORT).show();
 
             if(success) {
                 launchMainActivity();
