@@ -7,11 +7,12 @@ from models.inline_response404 import InlineResponse404  # noqa: E501
 from models.inline_response500 import InlineResponse500  # noqa: E501
 import util
 import io
+import os
 
 from miniomanager import MinioManager
 from flask import send_file
 
-minioClient = MinioManager("192.168.1.90","9000")
+minioClient = MinioManager(os.getenv("3M_MINIO_HOST", "localhost"), os.getenv("3M_MINIO_PORT", "9000"))
 
 def delete_file(bucket_name, file_id):  # noqa: E501
     """delete_file

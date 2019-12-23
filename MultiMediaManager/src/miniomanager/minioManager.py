@@ -1,3 +1,4 @@
+import os
 import io
 from minio import Minio
 from minio.error import (ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists, NoSuchBucket, NoSuchKey)
@@ -5,8 +6,8 @@ from minio.error import (ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyEx
 class MinioManager():
     def __init__(self, host, port):
         self.minioClient = Minio(f"{host}:{port}", 
-                                    access_key="admin", 
-                                    secret_key="minio2019",
+                                    access_key=os.getenv("3M_MINIO_ACCESS_KEY", "admin") ,
+                                    secret_key=os.getenv("3M_MINIO_SECRET_KEY", "minio2019") ,
                                     secure = False)
 
 
