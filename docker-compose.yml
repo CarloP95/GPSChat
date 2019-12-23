@@ -14,12 +14,18 @@ services:
     image: carlop95/3m
     #    ports:
             #        - '10203:10203'
+    environment:
+      3M_MINIO_ACCESS_KEY: "3M-Gps-Chat"
+      3M_MINIO_SECRET_KEY: "MMMmmmMMM"
+      3M_MINIO_HOST: "object-storage"
+      3M_MINIO_PORT: 9000
     networks:
         - network
 
   object-storage:
     image: 'minio/minio'
-
+    ports:
+      - 9000:9000
     environment:
       MINIO_ACCESS_KEY: "3M-Gps-Chat"
       MINIO_SECRET_KEY: "MMMmmmMMM"
