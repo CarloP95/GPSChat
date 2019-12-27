@@ -45,7 +45,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
     private IMqttToken clientConnectedToken;
     private String clientId;
     private String url;
-    private String topicFilter;
+    private String mTopicFilter;
     private final int qos = 0;
 
     private SharedPreferences preferences;
@@ -137,16 +137,16 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
         if (clientConnectedToken != null) {
 
             try {
-                subscribeToken = client.subscribe(topicFilter, qos);
+                subscribeToken = client.subscribe(mTopicFilter, qos);
                 subscribeToken.setActionCallback(new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken asyncActionToken) {
-                        Log.v("GPSCHAT", "Subscribed correctly with the topicFilter: " + topicFilter);
+                        Log.v("GPSCHAT", "Subscribed correctly with the topicFilter: " + mTopicFilter);
                     }
 
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                        Log.v("GPSCHAT", "Something is wrong with the subscription that has topic: " + topicFilter);
+                        Log.v("GPSCHAT", "Something is wrong with the subscription that has topic: " + mTopicFilter);
                     }
                 });
             } catch (MqttSecurityException e) {
@@ -161,16 +161,17 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
     public void onMainActivityMessageReceived(MainActivityMessageEvent message) {
         Log.v("GPSCHAT", "Received message from Main Activity ");
         String currentTopicFilter = updateTopicBuilderFromSharedPreferences().location(message.getLocation()).build();
+        Log.v("GPSCHAT", "Location to set is " + message.getLocation());
 
-        if (!currentTopicFilter.equals(this.topicFilter)) {
+        if (!currentTopicFilter.equals(this.mTopicFilter)) {
             if (subscribeToken != null && clientConnectedToken != null) {
                 try {
-                    client.unsubscribe(this.topicFilter);
+                    client.unsubscribe(this.mTopicFilter);
                 } catch (MqttException e) {
                     Log.e("GPSCHAT", "Tried to unsubscribe to previous topic. Error is: " + e.getMessage());
                 }
             }
-            this.topicFilter = currentTopicFilter;
+            this.mTopicFilter = currentTopicFilter;
             subscribeToTopicFilter();
         }
     }
@@ -189,7 +190,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
             *  to mitigate the problem. */
             String currentTopicFilter;
             if (itsShoutMessage) {
-                currentTopicFilter = topicFilter;
+                currentTopicFilter = mTopicFilter;
             }  else {
                 // TODO: Implement for each MqttMessageType
                 if (msgToSend.getType() != MqttBaseMessage.TYPE_REPLY) {
@@ -260,7 +261,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
     @Override
     public void onDestroy() {
         try {
-            client.unsubscribe(this.topicFilter);
+            client.unsubscribe(this.mTopicFilter);
             client.disconnect();
         } catch (MqttException e) {
             Log.e("GPSCHAT", "Service is closing resources but an error occurred: " + e.getMessage());

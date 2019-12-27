@@ -30,8 +30,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -44,7 +42,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -70,12 +67,10 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback,
@@ -286,19 +281,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnInfoWindowClickListener(this);
         //mMap.setInfoWindowAdapter(new ChatInfoWindowAdapter(this));
 
-        displayCurrentPositionAndSubscribeRadius();
-
         Intent launchServiceIntent = new Intent(this, MqttHandlerService.class);
         launchServiceIntent.putExtra(URL_KEY, "tcp://ec2-52-90-157-176.compute-1.amazonaws.com:1883");
         launchServiceIntent.putExtra(TKN_KEY, mPreferences.getString(LoginActivity.pref_string_token, ""));
         launchServiceIntent.putExtra(SES_KEY, mPreferences.getString(LoginActivity.pref_string_sessionId, ""));
         startService(launchServiceIntent);
 
+        mCurrentLocation = getSafeLastLocationFromProviders();
+
         mProcessEventBus.register(this);
-        mProcessEventBus.postSticky(new MainActivityMessageEvent()
-                .setLocation(mCurrentLocation)
-        );
+        updateMQTTTopicFilter();
         mMessageHandler  = new MessageHandlerContainer(mMap);
+
+        displayCurrentPositionAndSubscribeRadius();
+
         mProcessEventBus.postSticky(new WrapperEventForMessageHandler(mMessageHandler));
         mMessageHandler.pushMessage(new MqttShoutMessage(new MqttBaseMessage.Builder()
                 .id(1)
@@ -379,32 +375,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void displayCurrentPositionAndSubscribeRadius() {
-        mCurrentLocation = getLastLocationFromProviders();
-        if (mCurrentLocation == null) {
-            mCurrentLocation = new Location("");
-            mCurrentLocation.setLongitude(12.48870849609375);
-            mCurrentLocation.setLatitude(41.88592102814744);
-        }
+        mCurrentLocation = getSafeLastLocationFromProviders();
 
-        if (mCurrentLocation != null) {
+        LatLng currentLtLn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
 
-            LatLng currentLtLn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-            // TODO: Send a message to display your current position with your avatar
-            final MarkerOptions mo = new MarkerOptions()
-                    .position(currentLtLn)
-                    .title("Current Position")
-                    .snippet("This is your current position");
+        mMessageHandler.pushMessage(new MqttShoutMessage(new MqttBaseMessage.Builder()
+                        .id(1)
+                        .message("Hello, this is your private current position")
+                        .nickname(mNickname)
+                        .resources(mPreferences.getString(PREF_AVATAR_KEY, "https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png"))
+                        .revision(0L)
+                        .type(MqttBaseMessage.TYPE_SHOUT)
+                        .timestamp(new Date().toString())
+                        .build(),
+                        currentLtLn
+                )
+        );
 
-            mMap.addMarker(mo);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLtLn, 10));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLtLn));
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLtLn, 10));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLtLn));
+        if (mCurrentPublishCircle != null)
+            mCurrentPublishCircle.remove();
 
-            if (mCurrentPublishCircle != null)
-                mCurrentPublishCircle.remove();
+        mCurrentPublishCircle = MqttPayloadMessageAdaptatorForMarker.drawCircle(mMap, currentLtLn, UnitConverter.convertInMeters(mChosenRadius, mChosenUnit));
 
-            mCurrentPublishCircle = MqttPayloadMessageAdaptatorForMarker.drawCircle(mMap, currentLtLn, UnitConverter.convertInMeters(mChosenRadius, mChosenUnit));
-        }
     }
 
     private void publishMessage () {
@@ -421,6 +416,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         MqttShoutMessage toSend = new MqttShoutMessage(baseToSend, new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
 
         mProcessEventBus.post(new MqttMessagePayloadEvent(toSend));
+    }
+
+    private Location getSafeLastLocationFromProviders() {
+        Location lastLocation = getLastLocationFromProviders();
+
+        if (lastLocation == null) {
+            lastLocation = new Location("");
+            lastLocation.setLongitude(12.48870849609375);
+            lastLocation.setLatitude(41.88592102814744);
+        }
+
+        return lastLocation;
+
     }
 
     private Location getLastLocationFromProviders() {
@@ -616,48 +624,21 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
+    private void updateMQTTTopicFilter() {
+        mProcessEventBus.postSticky(new MainActivityMessageEvent()
+                .setLocation(mCurrentLocation)
+        );
+    }
+
     private class LocListener implements LocationListener {
 
         @Override
         public void onLocationChanged(Location location) {
 
-            LatLng currentPosition = new LatLng(location.getLatitude(), location.getLongitude());
-            Marker first = mMap.addMarker(new MarkerOptions()
-                    .position(currentPosition)
-                    .title("Current Position")
-                    .snippet("This is your current position")
-            );
+            mCurrentLocation = location;
+            displayCurrentPositionAndSubscribeRadius();
+            updateMQTTTopicFilter();
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, mZoom));
-
-            Toast.makeText(
-                    getApplicationContext(),
-                    "Location changed: Lat: " + location.getLatitude() + " Lng: "
-                            + location.getLongitude(), Toast.LENGTH_SHORT).show();
-            String longitude = "Longitude: " + location.getLongitude();
-            Log.v("GPSCHAT", longitude);
-            String latitude = "Latitude: " + location.getLatitude();
-            Log.v("GPSCHAT", latitude);
-
-            /*------- To get city name from coordinates -------- */
-            String cityName = null;
-            Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
-            List<Address> addresses;
-            try {
-                addresses = gcd.getFromLocation(location.getLatitude(),
-                        location.getLongitude(), 1);
-                if (addresses.size() > 0) {
-                    System.out.println(addresses.get(0).getLocality());
-                    cityName = addresses.get(0).getLocality();
-                }
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-            String s = longitude + "\n" + latitude + "\n\nMy Current City is: "
-                    + cityName;
-            Log.v("GPSCHAT", s);
         }
 
         @Override
