@@ -108,7 +108,9 @@ public class MessageHandlerContainer {
                     Log.i("GPSCHAT", "If the message has id of 1, than is reserved to communicate your current private position.");
 
                     if (newMsg.getId().equals(1L)) {
-                        Marker m = handleNotifyUI(true, newMsg);
+                        Marker oldM = mMessagesMarkers.get(1L);
+                        MessageHandlerComponent.removeMarker(oldM);
+                        Marker newM = handleNotifyUI(true, newMsg);
                     }
                 }
 
