@@ -54,7 +54,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
@@ -471,8 +470,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             messageTV.setText(msg.getMessage());
             String urlOfShouterAvatar = msg.getResources().get(0);
             if (urlOfShouterAvatar.equals("")) {
-                shouterAvatar.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
+                // Default user photo is already in the layout
+                //shouterAvatar.setBackgroundResource(R.drawable.userninjasolid); //Default User Photo
             } else {
+                Log.v("GPSCHAT", "Download Avatar and then display it.");
                 ImageLoader.getInstance().displayImage(urlOfShouterAvatar, shouterAvatar); // Requested User Photo
             }
 
@@ -595,10 +596,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (!mOpenInfoWindows.contains(marker.getId())) {
             mOpenInfoWindows.add(marker.getId());
+            MqttBaseMessage msg = mMessageHandler.getMessageFromMarker(marker);
+            if (msg.getResources().size() > 1) { //Then must set another InfoWindowAdapter
+                mMap.setInfoWindowAdapter(new ChatInfoWindowAdapter(this));
+            }
             marker.showInfoWindow();
-        }
-        else {
+        } else {
             mOpenInfoWindows.remove(mOpenInfoWindows.indexOf(marker.getId()));
+            mMap.setInfoWindowAdapter(null);
             marker.hideInfoWindow();
         }
 

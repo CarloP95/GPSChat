@@ -97,13 +97,19 @@ public class MessageHandlerContainer {
         switch (msg.getType()) {
             case MqttBaseMessage.TYPE_SHOUT:
 
+                MqttShoutMessage newMsg = (MqttShoutMessage)msg;
+
                 if (alreadyPresentMessage == null) {
                     // Display in map
                     Log.i("GPSCHAT", "Displaying Shout message");
-                    MqttShoutMessage newMsg = (MqttShoutMessage)msg;
                     Marker m = handleNotifyUI(false, newMsg);
                 } else {
                     Log.i("GPSCHAT", "A message that is already present, returned as TYPE SHOUT. From Network Message: " + msg.toString() + "\nOld Message: " + alreadyPresentMessage.toString());
+                    Log.i("GPSCHAT", "If the message has id of 1, than is reserved to communicate your current private position.");
+
+                    if (newMsg.getId().equals(1L)) {
+                        Marker m = handleNotifyUI(true, newMsg);
+                    }
                 }
 
                 break;
