@@ -176,6 +176,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(50 * 1024 * 1024); // 50 MiB
+        config.diskCacheFileCount(100);
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
         config.writeDebugLogs(); // Remove for release app
 
@@ -271,6 +272,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        // Necessary since to load images for icons is necessary to download in the main UI thread.
+        // Even if the current loading of images happens on a separate thread, this is throwing exceptions
+        // so is necessary to apply the Policy PermitAll
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                 .permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -299,7 +303,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .id(1)
                 .message("Hello, this is my current position")
                 .nickname(mNickname)
-                .resources(mPreferences.getString(PREF_AVATAR_KEY, "https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png"))
+                .resources(mPreferences.getString(PREF_AVATAR_KEY, "https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png"),
+                        "https://img.favpng.com/6/20/19/computer-icons-clip-art-png-favpng-HWWXzZYPdxbw4Hxdr8YQfdqRL.jpg")
                 .revision(0L)
                 .type(MqttBaseMessage.TYPE_SHOUT)
                 .timestamp(new Date().toString())
@@ -382,7 +387,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         .id(1)
                         .message("Hello, this is your private current position")
                         .nickname(mNickname)
-                        .resources(mPreferences.getString(PREF_AVATAR_KEY, "https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png"))
+                        .resources(mPreferences.getString(PREF_AVATAR_KEY, "https://upload.wikimedia.org/wikipedia/it/e/ee/Logo_Vodafone_new.png"),
+                                "https://img.favpng.com/6/20/19/computer-icons-clip-art-png-favpng-HWWXzZYPdxbw4Hxdr8YQfdqRL.jpg")
                         .revision(0L)
                         .type(MqttBaseMessage.TYPE_SHOUT)
                         .timestamp(new Date().toString())
@@ -598,7 +604,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             mOpenInfoWindows.add(marker.getId());
             MqttBaseMessage msg = mMessageHandler.getMessageFromMarker(marker);
             if (msg.getResources().size() > 1) { //Then must set another InfoWindowAdapter
-                mMap.setInfoWindowAdapter(new ChatInfoWindowAdapter(this));
+                mMap.setInfoWindowAdapter(new ChatInfoWindowAdapter(this, msg, mNickname));
             }
             marker.showInfoWindow();
         } else {

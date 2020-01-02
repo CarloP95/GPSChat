@@ -1,7 +1,6 @@
 package it.carlo.pellegrino.gpschat.messageHandlers;
 
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -207,9 +206,6 @@ public class MessageHandlerContainer {
 
             });
 
-            //mMapUpdater = new UpdateMapTask(mUiMap, (MqttShoutMessage)msg);
-            //Log.i("GPSCHAT", mMapUpdater.toString());
-            //mMapUpdater.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         }
 
