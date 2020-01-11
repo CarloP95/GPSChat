@@ -285,7 +285,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         //mMap.setInfoWindowAdapter(new ChatInfoWindowAdapter(this));
 
         Intent launchServiceIntent = new Intent(this, MqttHandlerService.class);
-        launchServiceIntent.putExtra(URL_KEY, "tcp://ec2-52-90-157-176.compute-1.amazonaws.com:1883");
+        launchServiceIntent.putExtra(URL_KEY, "tcp://ec2-52-90-157-176.compute-1.amazonaws.com:1883"); //TODO: Send custom MQTT URL
         launchServiceIntent.putExtra(TKN_KEY, mPreferences.getString(LoginActivity.pref_string_token, ""));
         launchServiceIntent.putExtra(SES_KEY, mPreferences.getString(LoginActivity.pref_string_sessionId, ""));
         startService(launchServiceIntent);

@@ -28,6 +28,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MainActivityMessageEvent;
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.MqttMessagePayloadEvent;
 import it.carlo.pellegrino.gpschat.messageBusMessageEvents.WrapperEventForMessageHandler;
@@ -42,7 +46,6 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
     private MqttAndroidClient client;
     private MqttConnectOptions options;
-    private IMqttToken clientConnectedToken;
     private String clientId;
     private String url;
     private String mTopicFilter;
@@ -53,6 +56,8 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
     private final TopicFilterBuilder topicBuilder  = new TopicFilterBuilder("");
     private MessageHandlerContainer messageBrokerWithUi = null;
     private IMqttToken         subscribeToken      = null;
+    private IMqttToken          connectToken       = null;
+    private ScheduledExecutorService reconnectExecutor;
 
     private EventBus processEventBus               = EventBus.getDefault();
 
@@ -63,6 +68,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
         processEventBus.register(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
         PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
         Log.v("GPSCHAT", "MqttHandlerService has been created");
     }
@@ -78,6 +84,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
         this.options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
         this.options.setCleanSession(true);
+        this.options.setAutomaticReconnect(true);
 
         String username_sessionId = intent.getExtras().getString(MainActivity.SES_KEY);
         String password_token     = intent.getExtras().getString(MainActivity.TKN_KEY);
@@ -86,22 +93,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
         this.client = new MqttAndroidClient(this, url, clientId);
 
-        try {
-            IMqttToken connectToken = client.connect(options);
-            connectToken.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    onConnectionSuccess(asyncActionToken);
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    onConnectionFailure(asyncActionToken, exception);
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        tryOrScheduleConnect();
 
         this.messageBrokerWithUi = processEventBus.getStickyEvent(WrapperEventForMessageHandler.class).getMessageHandler();
         processEventBus.removeStickyEvent(WrapperEventForMessageHandler.class);
@@ -118,7 +110,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
     private void onConnectionSuccess(IMqttToken asyncActionToken) {
         Log.v("GPSCHAT", "Connected with MQTT broker.");
-        clientConnectedToken = asyncActionToken;
+        connectToken = asyncActionToken;
         client.setCallback(this);
 
         MainActivityMessageEvent msg = processEventBus.getStickyEvent(MainActivityMessageEvent.class);
@@ -128,15 +120,22 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
 
     private void onConnectionFailure(IMqttToken asyncActionToken, Throwable exception) {
         Log.e("GPSCHAT", "Error when connecting with MQTT Broker: " +  exception.getLocalizedMessage());
+        if ("Client is connected".equalsIgnoreCase(exception.getLocalizedMessage())) {
+            Log.v("GPSCHAT","Client reconnected automagically.");
+            subscribeToTopicFilter();
+            return;
+        }
+        reconnectExecutor.schedule(() -> tryOrScheduleConnect(), 10, TimeUnit.SECONDS);
 //      Log.e("GPSCHAT", asyncActionToken.getException().getMessage());
-        //processEventBus.post(new MqttMessageEvent("!Connected with the MQTT broker."));
     }
 
     private void subscribeToTopicFilter() {
 
-        if (clientConnectedToken != null) {
+        if (connectToken != null) {
 
             try {
+                Log.d("GPSCHAT","Subscribing to topic filter: " + mTopicFilter + "\nQoS: " + qos);
+
                 subscribeToken = client.subscribe(mTopicFilter, qos);
                 subscribeToken.setActionCallback(new IMqttActionListener() {
                     @Override
@@ -160,12 +159,13 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void onMainActivityMessageReceived(MainActivityMessageEvent message) {
         Log.v("GPSCHAT", "Received message from Main Activity ");
-        String currentTopicFilter = updateTopicBuilderFromSharedPreferences().location(message.getLocation()).build();
+        String currentTopicFilter = getTopicBuilderFromSharedPreferences().location(message.getLocation()).build();
         Log.v("GPSCHAT", "Location to set is " + message.getLocation());
 
         if (!currentTopicFilter.equals(this.mTopicFilter)) {
-            if (subscribeToken != null && clientConnectedToken != null) {
+            if (subscribeToken != null && connectToken != null) {
                 try {
+                    Log.d("GPSCHAT", "Unsubscribing from previous topic: " + this.mTopicFilter + "\nNew: " + currentTopicFilter);
                     client.unsubscribe(this.mTopicFilter);
                 } catch (MqttException e) {
                     Log.e("GPSCHAT", "Tried to unsubscribe to previous topic. Error is: " + e.getMessage());
@@ -228,9 +228,36 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
         }
     }
 
+
+    private void tryOrScheduleConnect() {
+        try {
+            this.connectToken = client.connect(options);
+            this.connectToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    onConnectionSuccess(asyncActionToken);
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    onConnectionFailure(asyncActionToken, exception);
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+            reconnectExecutor.schedule(() -> tryOrScheduleConnect(), 3, TimeUnit.SECONDS);
+        }
+    }
     @Override
     public void connectionLost(Throwable cause) {
-        Log.e("GPSCHAT", cause.getLocalizedMessage());
+        if (cause != null)
+            Log.e("GPSCHAT", cause.getLocalizedMessage());
+
+        if (subscribeToken != null || connectToken != null) {
+            subscribeToken = connectToken = null;
+            tryOrScheduleConnect();
+        }
+
     }
 
     @Override
@@ -282,7 +309,7 @@ public class MqttHandlerService extends Service implements MqttCallback, SharedP
         }
     }
 
-    private TopicFilterBuilder updateTopicBuilderFromSharedPreferences() {
+    private TopicFilterBuilder getTopicBuilderFromSharedPreferences() {
         int radius    = preferences.getInt(getResources().getString(R.string.key_shout_radius), 1000),
              timestamp = preferences.getInt(getResources().getString(R.string.key_timestamp), 60);
 
