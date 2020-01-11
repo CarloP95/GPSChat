@@ -125,6 +125,7 @@ func listenHTTPRequests(c *Controller) {
 		}
 	}
 }
+
 // TODO: Interval of command is not respected
 func schedulePeriodicCommands(c *Controller) {
 
@@ -149,7 +150,11 @@ func schedulePeriodicCommands(c *Controller) {
 					var periodicResult commands.Result
 					periodicResult = <-c.periodicQueue
 					klog.Infof("Periodic Behavior returned with: %++v", periodicResult)
-					c.bot.PublishMessage(c.messageFactory.NewShoutMessage(periodicResult))
+
+					var sendMsg *messages.GPSChatShoutMessage
+					sendMsg = c.messageFactory.NewShoutMessage(periodicResult)
+					klog.Infof("Message that will be published is %++v", sendMsg)
+					c.bot.PublishMessage(sendMsg)
 				}
 			case <-c.quitQueue:
 				ticker.Stop()

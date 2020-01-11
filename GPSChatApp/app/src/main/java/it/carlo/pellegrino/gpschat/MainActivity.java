@@ -380,6 +380,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void displayCurrentPositionAndSubscribeRadius() {
         mCurrentLocation = getSafeLastLocationFromProviders();
+        Log.d("GPSCHAT", "Location from displayCurrentPositionAndSubscribeRadius: " + mCurrentLocation);
 
         LatLng currentLtLn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
 
@@ -647,6 +648,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         public void onLocationChanged(Location location) {
 
             mCurrentLocation = location;
+            Log.d("GPSCHAT", "Location from LocationListener: " + mCurrentLocation);
             displayCurrentPositionAndSubscribeRadius();
             updateMQTTTopicFilter();
 

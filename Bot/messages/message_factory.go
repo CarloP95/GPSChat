@@ -22,18 +22,21 @@ func (mf *MessageFactory) NewShoutMessage(result commands.Result) *GPSChatShoutM
 	id, err := uuid.NewRandom()
 	if err != nil {
 		klog.Errorf("Something's wrong in generating UUID.\nError: %s", err)
-		id =  uuid.MustParse("2")
+		id = uuid.MustParse("2")
 	}
+	idToNum := id.ID()
 	return &GPSChatShoutMessage{
 		GPSChatBaseMessage: GPSChatBaseMessage{
 			Nickname:  mf.Name,
 			Message:   result.Message,
-			ID:        id.String(),
+			ID:        fmt.Sprintf("%d", idToNum),
 			Resources: result.Resource,
 			Type:      ShoutMsg,
 			Revision:  0,
 			Timestamp: fmt.Sprintf("%s", time.Now()),
 		},
-		Location: LatLon{Latitude: mf.Latitude, Longitude: mf.Longitude},
+		Location:   LatLon{Latitude: mf.Latitude, Longitude: mf.Longitude},
+		Replies:    []GPSChatReplyMessage{},
+		NumReplies: 0,
 	}
 }

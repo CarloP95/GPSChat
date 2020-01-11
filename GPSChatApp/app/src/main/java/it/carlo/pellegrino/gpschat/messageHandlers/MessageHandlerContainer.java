@@ -183,16 +183,24 @@ public class MessageHandlerContainer {
                 Log.d("GPSCHAT","Started a thread that will update the UI");
 
                 MqttShoutMessage mMsg = new MqttShoutMessage(msg, ((MqttShoutMessage)msg).getLocation());
-
+                Log.d("GPSCHAT", "PRINTING LOCATION: " + mMsg.getLocation());
                 String avatarUrl = mMsg.getResources().get(0);
-                Bitmap icon = ImageUtils.getBitmap(avatarUrl);
-                Log.i("GPSCHAT", "Downloaded avatar...");
+                Bitmap icon = null;
+                Log.d("GPSCHAT", "Url to download for avatar is: " + avatarUrl);
+                if (avatarUrl.equals("")) {
+                    Log.d("GPSCHAT", "Empty Url. Will use default marker");
+                } else {
+                    icon = ImageUtils.getBitmap(avatarUrl);
+                    Log.i("GPSCHAT", "Downloaded avatar...");
+                }
+                Log.d("GPSCHAT", "Displaying Marker with: \nNickname: " + mMsg.getNickname() + "\nMessage: " + mMsg.getMessage() + "\nLocation: " + mMsg.getLocation());
                 MarkerOptions mo = new MarkerOptions()
                         .title(mMsg.getNickname())
                         .snippet(mMsg.getMessage())
                         .position(mMsg.getLocation());
 
                 if (icon != null) {
+                    Log.d("GPSCHAT", "Setting icon for marker");
                     mo.icon(BitmapDescriptorFactory.fromBitmap(icon));
                 }
 

@@ -56,22 +56,22 @@ func (c *Command) Execute() Result {
 	case validObjs["temp"]:
 		if issuedOp == validOps["read"] {
 			returnVal := rand.Intn(5) + 23
-			return Result{Message: fmt.Sprintf("%d %s", returnVal, "Celsius")}
+			return Result{Resource: []string{""}, Message: fmt.Sprintf("%d %s", returnVal, "Celsius")}
 		} else { //validOps["write"]
 			// Mock Write.
-			return Result{Message: "Thermostat temperature set."}
+			return Result{Resource: []string{""}, Message: "Thermostat temperature set."}
 		}
 	case validObjs["mag"]:
 		if issuedOp == validOps["read"] {
 			returnVal := rand.Intn(2)
 			if returnVal == 0 {
-				return Result{Message: "Window is closed."}
+				return Result{Resource: []string{""}, Message: "Window is closed."}
 			} else {
-				return Result{Message: "Window is opened."}
+				return Result{Resource: []string{""}, Message: "Window is opened."}
 			}
 		} else { //validOps["write"]
 			// Mock Write.
-			return Result{Message: "Triggering action to close window."}
+			return Result{Resource: []string{""}, Message: "Triggering action to close window."}
 		}
 	case validObjs["cam"]:
 		if issuedOp == validOps["read"] {
@@ -82,9 +82,9 @@ func (c *Command) Execute() Result {
 				return Result{Resource: []string{ThiefImage}, Message: "Camera has detected intruders!"}
 			}
 		} else { //validOps["write"]
-			return Result{Message: "Can't write to camera."}
+			return Result{Resource: []string{""}, Message: "Can't write to camera."}
 		}
 	default: //Execution will never get here.
-		return Result{Message: "If this message is returned, contact system administrator."}
+		return Result{Resource: []string{""}, Message: "If this message is returned, contact system administrator."}
 	}
 }
