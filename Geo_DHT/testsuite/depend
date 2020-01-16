@@ -1,0 +1,2 @@
+ipResolver.o: ipResolver.cpp
+test_runner.o: test_runner.cpp
