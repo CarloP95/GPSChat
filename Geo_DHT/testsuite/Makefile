@@ -1,16 +1,21 @@
 NAME = test_runner
 
 CXX = g++
-INC = -I ../include/ipResolver/
 LDLIBS = -L /usr/local/lib/libPoco* -lcppunit
 
 .PHONY: clean test
 
-$(NAME): ipResolver.o
-	$(CXX) $(INC) $(LDLIBS) -o $@ $@.cpp
+$(NAME): ipResolver.o ipResolverTest.o test_runner.o
+	$(CXX) -o $@ $^ $(LDLIBS)
 
-ipResolver.o: 
-	$(CXX) $(LDLIBS) -o $< ../include/ipResolver/ipResolver.cpp
+ipResolver.o: ../include/ipResolver/ipResolver.cpp
+	$(CXX) -c $<
+
+ipResolverTest.o: ipResolverTest.cpp
+	$(CXX) -c $<
+
+test_runner.o: test_runner.cpp
+	$(CXX) -c $<
 
 test:
 	@echo Running tests: 

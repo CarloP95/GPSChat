@@ -10,6 +10,7 @@ namespace IPResolver {
 
     IPAddress IPResolver::resolveIP() {
         try {
+            
             HTTPRequest request{HTTPRequest::HTTP_GET, this -> pathAndQuery, HTTPRequest::HTTP_1_1};
             HTTPClientSession session{this -> host, this -> port};
             HTTPResponse response;
@@ -17,12 +18,18 @@ namespace IPResolver {
             session.sendRequest(request);
             istream& responseStream = session.receiveResponse(response);
 
-            this -> logger.debug(response.getStatus);
-            this -> logger.debug(response.getReason);
+            this -> logger.debug(response.getReason());
 
             string responseToString{istreambuf_iterator<char>(responseStream), { } };
+            this -> logger.debug(responseToString);
+            cout << endl << endl << "=============" << endl;
+            cout << responseToString << endl;
+            cout << "=============" << endl;
+
+            return IPAddress{"255.255.255.255"};
+
         } catch (Exception& ex) {
-            this -> logger.error(ex.what);
+            this -> logger.error(ex.what());
             return IPAddress{"0.0.0.0"};
         }
     }
