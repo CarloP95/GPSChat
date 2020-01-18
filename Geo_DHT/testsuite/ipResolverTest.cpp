@@ -19,12 +19,12 @@ class IPResolverTest : public CppUnit::TestCase {
 
 			IPResolver::IPResolver ipres{};
 
-			Poco::Net::IPAddress result = ipres.resolveIP();
+			IPResolver::IP_API_Response result = ipres.resolveIP();
 
-			CPPUNIT_ASSERT (IPAddress{"0.0.0.0"} != result);
-			CPPUNIT_ASSERT_MESSAGE ("The IP was not resolved, an invalid IP Address was returned.", IPAddress{"0.0.0.0"} != result);
+			CPPUNIT_ASSERT (result.getIP() != IPResolver::IP_API_Response{NULL}.getIP());
+			CPPUNIT_ASSERT_MESSAGE ("The IP was not resolved, an invalid IP Address was returned.", "0.0.0.0" != result.getIP());
 
-			std::cout << result << std::endl;
+			std::cout << "All good" << std::endl;
 		}
 };
 

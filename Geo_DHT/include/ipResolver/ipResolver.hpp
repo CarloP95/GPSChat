@@ -4,43 +4,42 @@
 # include <string>
 # include <iostream>
 # include <Poco/URI.h>
-# include <Poco/Logger.h>
 # include <Poco/Net/IPAddress.h>
 # include <Poco/Net/HTTPRequest.h>
 # include <Poco/Net/HTTPResponse.h>
 # include <Poco/Net/HTTPClientSession.h>
 # include <Poco/JSON/Parser.h>
 
+# include "spdlog/spdlog.h"
+
 
 using namespace std;
 using namespace Poco;
 using namespace Poco::Net;
-
-using Poco::Logger;
 
 namespace IPResolver {
 
     class IP_API_Response {
         private:
 
-            const string STATUS_STRING = "status";
-            const string MESSAGE_STRING = "message";
-            const string CONTINENT_STRING = "continent";
-            const string CONTINENTCODE_STRING = "continentCode";
-            const string COUNTRY_STRING = "country";
-            const string COUNTRYCODE_STRING = "countryCode";
-            const string REGION_STRING = "region";
-            const string REGIONNAME_STRING = "regionName";
-            const string CITY_STRING = "city";
-            const string ZIP_STRING = "zip";
-            const string LAT_STRING = "lat";
-            const string LON_STRING = "lon";
-            const string TIMEZONE_STRING = "timezone";
-            const string ISP_STRING = "isp";
-            const string ORG_STRING = "org";
-            const string QUERY_STRING = "query";
+            const static string STATUS_STRING;
+            const static string MESSAGE_STRING;
+            const static string CONTINENT_STRING;
+            const static string CONTINENTCODE_STRING;
+            const static string COUNTRY_STRING;
+            const static string COUNTRYCODE_STRING;
+            const static string REGION_STRING;
+            const static string REGIONNAME_STRING;
+            const static string CITY_STRING;
+            const static string ZIP_STRING;
+            const static string LAT_STRING;
+            const static string LON_STRING;
+            const static string TIMEZONE_STRING;
+            const static string ISP_STRING;
+            const static string ORG_STRING;
+            const static string QUERY_STRING;
 
-            const string STATUS_SUCCESS_STRING = "success";
+            const static string STATUS_SUCCESS_STRING;
 
             string status;
             string message;
@@ -58,8 +57,14 @@ namespace IPResolver {
             string isp;
             string org;
             string ip;
+            
         public:
+            static IP_API_Response INVALID_VALUE;
+
+            IP_API_Response();
             IP_API_Response(JSON::Object::Ptr json);
+            //IP_API_Response(IP_API_Response& toCopy);
+            //IP_API_Response operator=(const IP_API_Response& f);
 
             string getIP();
             double getLat();
@@ -70,17 +75,16 @@ namespace IPResolver {
 
         private:
             string host;
+            string toAppendLaterQuery;
             unsigned short port;
             string pathAndQuery;
-            URI uri;
-            Logger& logger{Poco::Logger::get("IPResolver")};
+            URI baseURI;
             JSON::Parser parser;
 
         public:
-            IPResolver(URI uri = URI{"http://ip-api.com/json/?fields=3205119"});
+            IPResolver(URI baseURI = URI{"http://ip-api.com/json/"}, string query = string{"?fields=3205119"});
 
-            IP_API_Response resolveIP();
-
+            IP_API_Response resolveIP(string ip = string{});
     };
 
 }
