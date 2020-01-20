@@ -41,3 +41,9 @@ With this script the following data will be displayed into pdf.
 
 #### R Plots
 ![Plots](Rplots.pdf)
+
+## Libraries
+For this project three libraries have been used:
+1. Mongolite to connect with MongoDB and download data
+2. Httr to make http get requests to query OpenStreetMap API for Reverse Geocoding.
+3. Stringr to simplify the timestamp given in messages to calculate hourly stress of the application.
