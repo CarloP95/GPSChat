@@ -39,8 +39,10 @@ object MQTTActor {
                 case StartCommand (topic, url) =>
                     context.log.info (s"Received Start Command. Starting normal behavior to connect & subscribe to $url with topic $topic")
 
-                    lazy val persistence = new MqttDefaultFilePersistence ()
-                    client = new MqttClient (url, MqttClient.generateClientId(), persistence)
+                    //NOTE: Do not use persistence, since this will not have permissions to write the folder 
+                    //lazy val persistence = new MqttDefaultFilePersistence ()
+                    //client = new MqttClient (url, MqttClient.generateClientId(), persistence)
+                    client = new MqttClient (url, MqttClient.generateClientId(), null)
 
                     val handlers = new MqttCallback {
                         override def connectionLost(cause: Throwable): Unit = {
