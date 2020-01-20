@@ -23,13 +23,25 @@ You can even test it in Docker by either pulling the image or by building your o
 The environment variable BOT_HTTP_PORT is to tell the Bot in which port to listen for commands by the BotManager.
 You can submit your own commands by simply doing a curl with the correct data passed. See [BotManager](https://github.com/CarloP95/GPSChat/tree/master/BotManager) for more info about that.
 
-Pull:
+###### Environmental Variables:
+Here a list of environmental variables that should be passed to the container and the rationale behind:
+
+```
+    BOT_USERNAME: Username to connect with the MQTT Broker
+    BOT_PWD: Password to connect with MQTT Broker
+```
+
+<aside class="notice">
+I am conscious about the risks to expose environmental variables in container. This should be done with docker secrets, but not for current implementation.
+</aside>
+
+###### Pull:
 ```bash
     docker pull carlop95/gps-bot
     docker run --rm -p 9490:9490 -e BOT_HTTP_PORT=9490 carlop95/gps-bot
 ```
 
-Build:
+###### Build:
 ```bash
     docker build -t gps-bot .
     docker run --rm -p 9490:9490 -e BOT_HTTP_PORT=9490 gps-bot
