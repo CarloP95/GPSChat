@@ -6,7 +6,32 @@ services:
   broker:
     image: carlop95/gps-mqtt:1.0
     ports:
-        - '1883:1883'
+        - 1883:1883
+    networks:
+        - network
+    deploy:
+        replicas: 2
+
+  dht:
+    image: carlop95/dht
+    ports:
+        - 4242:4242/udp
+    networks:
+        - network
+    deploy:
+        replicas: 2
+
+  bot-manager:
+    image: carlop95/bot-manager
+    ports:
+        - 9450:9450
+    volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+        - network
+
+  mqtt-mongo-connector:
+    image: carlop95/mqtt-to-mongo-writer
     networks:
         - network
 
