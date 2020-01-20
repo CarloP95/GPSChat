@@ -29,9 +29,9 @@ lIQQuery <- "&lat=%f&lon=%f&format=json"
 
 ## What kind of Data Analysis
 With this script the following data will be displayed into pdf.
-1. Most active hour for the application : [Messages per Hour](#messagesPerHour).
-2. Most active cities for the application : [Most Active Cities](#mostActiveCities).
-3. Total number of shouts and replies per user : [R Plots](#rPlots).
+1. Most active hour for the application : [Messages per Hour](#messages-per-hour).
+2. Most active cities for the application : [Most Active Cities](#most-active-cities).
+3. Total number of shouts and replies per user : [R Plots](#r-plots).
 
 #### Messages Per Hour
 ![MessagesPerHour](res/MessagesPerHour.pdf)
