@@ -100,8 +100,8 @@ namespace DHT{
         
             while (true) {
                 this -> dhtSocket.receiveFrom(buffer, BUFFER_SIZE, from);
-                auto recTimestamp = chrono::system_clock::now();
-                time_t endTime = chrono::system_clock::to_time_t(recTimestamp);
+                //auto recTimestamp = chrono::system_clock::now();
+                //time_t endTime = chrono::system_clock::to_time_t(recTimestamp); //TODO: Use for get serving times
 
                 spdlog::info("Received new message. \t Msg is: {}", buffer);
                 
@@ -160,7 +160,7 @@ namespace DHT{
     void DHT::joinDHT() {
         
         int numberOfActivePeers = peers.size();
-        bool imTheOnlyPeer = !numberOfActivePeers > 0;
+        bool imTheOnlyPeer = !(numberOfActivePeers > 0);
         // For now fix the geoHash to 1
         numberOfActivePeers = 1;
         string geoHash = geoHashResolver.getGeoHash(repoOfInfos.getLat(), repoOfInfos.getLon(), imTheOnlyPeer ? 1 : numberOfActivePeers); //TODO: Must calculate a fraction of this
@@ -226,14 +226,7 @@ namespace DHT{
         this -> to = geoHash;
         this -> from = geoHash;
         
-        Peer::Peer me{this -> dhtAddress, geoHash, nodeId.toString()};
-
-        try {
-            list<Peer::Peer> peersForGeoHash = geoHashToPeers.at(geoHash);
-            peersForGeoHash.push_back(me);
-        } catch (out_of_range&) {
-            geoHashToPeers.insert(pair<string, list<Peer::Peer>>(geoHash, list<Peer::Peer>{me}));
-        }
+        insertMyselfOnList(geoHash);
 
     }
 
@@ -283,6 +276,8 @@ namespace DHT{
             return host;
         } catch (out_of_range&) {
             spdlog::error("No candidates were found for geohash {}. Will return myself.", geoHash);
+            spdlog::error("Now i will answer to client that has this geoHash {}", geoHash);
+            insertMyselfOnList(geoHash);
             return this -> dhtAddress;
         }
 
@@ -298,6 +293,17 @@ namespace DHT{
         return this -> dhtAddress;
         */
 
+    }
+
+    void DHT::insertMyselfOnList(string geoHash) {
+        Peer::Peer me{this -> dhtAddress, geoHash, nodeId.toString()};
+
+        try {
+            list<Peer::Peer> peersForGeoHash = geoHashToPeers.at(geoHash);
+            peersForGeoHash.push_back(me);
+        } catch (out_of_range&) {
+            geoHashToPeers.insert(pair<string, list<Peer::Peer>>(geoHash, list<Peer::Peer>{me}));
+        }
     }
 
     bool DHT::tryBind(DatagramSocket& socket, SocketAddress& bindAddr) {

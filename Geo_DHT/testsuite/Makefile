@@ -9,10 +9,10 @@ INC= -I ../include/spdlog/include
 $(NAME): ipResolver.o ipResolverTest.o test_runner.o DHTProtocolMessage.o FindTest.o
 	$(CXX) -o $@ $^ $(LDLIBS) $(INC)
 
-ipResolver.o: ../include/ipResolver/ipResolver.cpp
+ipResolver.o: ../include/dep/ipResolver.cpp
 	$(CXX) $(INC) -c $<
 
-DHTProtocolMessage.o: ../include/ipResolver/DHTProtocolMessage.cpp
+DHTProtocolMessage.o: ../include/dep/DHTProtocolMessage.cpp
 	$(CXX) $(INC) -c $<
 
 ipResolverTest.o: ipResolverTest.cpp

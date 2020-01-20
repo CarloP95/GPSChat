@@ -69,6 +69,7 @@ namespace DHT {
             void sendBackToJoinablePeer(SocketAddress addr, string newFrom, string newTo, DatagramSocket toUseSocket, bool status = true);
             void findAndSendBackToClient(SocketAddress addr, DatagramSocket toUseSocket);
             void prepareForStandAloneMode(string geoHash);
+            void insertMyselfOnList(string geoHash);
             SocketAddress getNearestPeer(string geoHash);
 
             bool tryBind(DatagramSocket& socket, SocketAddress& bindAddr);

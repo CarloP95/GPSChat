@@ -1,4 +1,4 @@
-#include "../include/ipResolver/ipResolver.hpp"
+#include "../include/dep/ipResolver.hpp"
 
 #include <Poco/Net/IPAddress.h>
 

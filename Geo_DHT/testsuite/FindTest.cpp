@@ -1,4 +1,4 @@
-#include "../include/ipResolver/DHTProtocolMessage.hpp"
+#include "../include/dep/DHTProtocolMessage.hpp"
 
 #include <Poco/Net/IPAddress.h>
 #include <Poco/Net/DatagramSocket.h>
