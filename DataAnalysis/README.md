@@ -37,7 +37,7 @@ With this script the following data will be displayed into pdf.
 ![MessagesPerHour](res/MessagesPerHour.pdf)
 
 #### Most Active Cities
-![MessagesPerHour](res/MostActiveCities.pdf)
+![MostActiveCities](res/MostActiveCities.pdf)
 
 #### R Plots
 ![Plots](Rplots.pdf)
