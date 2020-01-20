@@ -1,4 +1,4 @@
-name := "akka-quickstart-scala"
+name := "mqtt-to-mongo-writer"
 
 version := "1.0"
 
