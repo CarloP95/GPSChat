@@ -10,7 +10,7 @@ services:
     networks:
         - network
     deploy:
-        replicas: 2
+        mode: global
 
   dht:
     image: carlop95/dht
@@ -19,7 +19,9 @@ services:
     networks:
         - network
     deploy:
-        replicas: 2
+        mode: global
+    volumes:
+        - ./config.json:/dht/conf/config.json
 
   bot-manager:
     image: carlop95/bot-manager
@@ -37,8 +39,6 @@ services:
 
   mmm:
     image: carlop95/3m
-    #    ports:
-            #        - '10203:10203'
     environment:
       3M_MINIO_ACCESS_KEY: "3M-Gps-Chat"
       3M_MINIO_SECRET_KEY: "MMMmmmMMM"
@@ -60,8 +60,6 @@ services:
       
   im:
     image: carlop95/interaction-manager:1.0
-    #    ports:
-            #        - '5683:5683/udp'
     networks:
         - network
 
