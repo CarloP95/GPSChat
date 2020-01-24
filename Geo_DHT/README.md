@@ -18,6 +18,7 @@ make install
 cd ..
 cd ..
 #Now compile the project
+mkdir bin
 make -j 2
 #Execute it
 ./bin/Executable
