@@ -78,6 +78,13 @@ func (cm *ContainerManager) StartBot(command messages.ValueToStartBot, botID str
 		cm.executableName = defaultExecutableName
 	}
 
+	var commandKeyValue string
+	if len(command.Commands) != 0 {
+		commandKeyValue = fmt.Sprintf("-%s %s", commandString, command.Commands)
+	} else {
+		commandKeyValue = ""
+	}
+
 	cliCommand := []string{
 		"./" + cm.executableName,
 
@@ -90,13 +97,12 @@ func (cm *ContainerManager) StartBot(command messages.ValueToStartBot, botID str
 		command.Name,
 
 		"-" + intervalString,
-		fmt.Sprintf("%d", command.Interval),
+		fmt.Sprintf("%ds", command.Interval),
 
 		"-" + idString,
 		botID,
 
-		"-" + commandString,
-		command.Commands,
+		commandKeyValue,
 
 		"-" + publishTopicString,
 		command.PublishTopic,
@@ -107,6 +113,8 @@ func (cm *ContainerManager) StartBot(command messages.ValueToStartBot, botID str
 		"-" + urlString,
 		command.URL,
 	}
+
+	klog.Infof("Command with which the container will be created is %++v", cliCommand)
 
 	currentPort := cm.portManager.GetPortToAssign()
 	hostBinding := nat.PortBinding{
@@ -138,12 +146,15 @@ func (cm *ContainerManager) StartBot(command messages.ValueToStartBot, botID str
 	}
 
 	cm.botIDToContainerIDMapping[botID] = resp.ID
+	klog.Infof("Container %s has been created.", resp.ID)
 
 	err = cm.cli.ContainerStart(cm.ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
 		klog.Errorf("Error in starting container.\nError: %s", err)
 		return "", "", err
 	}
+
+	klog.Infof("Container %s has been Started.", resp.ID)
 
 	return resp.ID, fmt.Sprintf(":%s", currentPort), nil
 }
@@ -176,7 +187,7 @@ func (cm *ContainerManager) HandleMessage(m messages.Message) (string, string, e
 			var containerArgs messages.ValueToStartBot
 			err := json.Unmarshal([]byte(m.Value), &containerArgs)
 			if err != nil {
-				klog.Errorf("An error occurred because the value was not well formatted.\nValue: %s\nError:", m.Value, err)
+				klog.Errorf("An error occurred because the value field was not well formatted.\nValue: %s\nError:", m.Value, err)
 				return "", "", err
 			}
 			// Start the container
@@ -184,6 +195,7 @@ func (cm *ContainerManager) HandleMessage(m messages.Message) (string, string, e
 			if err != nil {
 				klog.Errorf("Error while getting UUID for bot.\nError: %s", err)
 			}
+
 			containerID, url, err := cm.StartBot(containerArgs, botID)
 			if err != nil {
 				klog.Errorf("An error occurred while trying to create the container.\nError: %s", err)

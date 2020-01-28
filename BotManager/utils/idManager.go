@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -16,8 +17,8 @@ func (im *IDManager) GetUUID() (string, error) {
 
 	if err != nil {
 		mock, _ := uuid.Parse("0") //This will never return Error.
-		return mock.String(), err
+		return fmt.Sprintf("%d", mock.ID()), err
 	}
 
-	return toReturn.String(), nil
+	return fmt.Sprintf("%d", toReturn.ID()), nil
 }
